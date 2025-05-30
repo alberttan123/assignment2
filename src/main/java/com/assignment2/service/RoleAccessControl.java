@@ -32,6 +32,8 @@ public class RoleAccessControl {
         )));
 
         roleAccessMap.put("finance_manager", new HashSet<>(Arrays.asList(
+                "approve_pos",
+                "modify_po_quantity_supplier",
                 "process_payments",
                 "generate_financial_reports",
                 "view_pr",
