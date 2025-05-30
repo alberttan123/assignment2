@@ -77,14 +77,6 @@ public class FunctionButtonFactory {
             System.out.println("Editing Purchase Order...");
         });
 
-        actions.put("approve_pos", () -> {
-            System.out.println("Approving Purchase Orders...");
-        });
-
-        actions.put("modify_po_quantity_supplier", () -> {
-            System.out.println("Modifying PO Quantity or Supplier...");
-        });
-
         actions.put("process_payments", () -> {
             System.out.println("Processing Payments...");
         });

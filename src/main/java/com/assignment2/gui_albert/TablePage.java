@@ -168,8 +168,8 @@ public class TablePage extends GUI {
             buttonPanel.add(deleteButton);
         }
         if (allowApproveReject) {
-            JButton approveButton = new JButton("Approve");
-            JButton rejectButton = new JButton("Reject");
+            approveButton = new JButton("Approve");
+            rejectButton = new JButton("Reject");
             buttonPanel.add(approveButton);
             buttonPanel.add(rejectButton);
         }
@@ -226,7 +226,7 @@ public class TablePage extends GUI {
         if (allowApproveReject && approveButton != null && rejectButton != null) {
             approveButton.addActionListener(e -> {
                 int row = table.getSelectedRow();
-                if (actionHandler != null){
+                if (actionAdapter != null){
                     int modelRow = table.convertRowIndexToModel(row);
                     JsonObject rowData = jsonData.get(modelRow).getAsJsonObject();
                     actionAdapter.onApprove(rowData);
@@ -235,7 +235,7 @@ public class TablePage extends GUI {
             });
             rejectButton.addActionListener(e -> {
                 int row = table.getSelectedRow();
-                if (actionHandler != null){
+                if (actionAdapter != null){
                     int modelRow = table.convertRowIndexToModel(row);
                     JsonObject rowData = jsonData.get(modelRow).getAsJsonObject();
                     actionAdapter.onReject(rowData);
