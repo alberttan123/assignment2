@@ -1,0 +1,14 @@
+Stock Report
+Generated on: 2025-05-26 17:07:02
+
+Summary:
+Total Items: 4
+Low Stock Items (< 10): 0
+
+Detailed Stock Report:
+ID         Item Name                      Supplier                       Stock Level     Price     
+-----------------------------------------------------------------------------------------------
+301        Laptop                         Tech Supplies Co.              200             $200.00   
+302        Keyboard                       Office Gear Ltd.               300             $45.99    
+303        Monitor                        Tech Supplies Co.              85              $320.00   
+304        Mouse                          Peripherals Inc.               200             $25.75    

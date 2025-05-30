@@ -1,0 +1,182 @@
+package com.assignment2.helpers;
+
+import javax.swing.*;
+import java.awt.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Supplier;
+
+import com.assignment2.gui_albert.HomePage;
+import com.assignment2.gui_albert.TablePage;
+import com.assignment2.gui_xiang.ItemsWindow;
+import com.assignment2.gui_xiang.PurchaseOrdersWindow;
+import com.assignment2.gui_xiang.StockReportWindow;
+
+public class FunctionButtonFactory {
+
+    public static Map<String, JButton> createFunctionButtons(JFrame currentWindow) {
+        Map<String, JButton> buttons = new HashMap<>();
+        Map<String, Runnable> actions = new HashMap<>();
+
+        actions.put("manage_items", () -> {
+            System.out.println("Opening Item Management Window...");
+        });
+
+        actions.put("manage_suppliers", () -> {
+            System.out.println("Opening Supplier Management Window...");
+        });
+
+        actions.put("enter_daily_sales", () -> {
+            System.out.println("Launching Daily Sales Entry...");
+        });
+
+        actions.put("create_pr", () -> {
+            System.out.println("Launching Create PR Dialog...");
+        });
+
+        actions.put("view_prs", () -> {
+            System.out.println("Displaying PR List...");
+        });
+
+        actions.put("view_po_list", () -> {
+            System.out.println("Showing PO List...");
+        });
+
+        actions.put("view_items", () -> {
+            System.out.println("Viewing Items...");
+            openWithReturnToHome(currentWindow, ItemsWindow::new);
+        });
+
+        actions.put("update_stock_from_po", () -> {
+            System.out.println("Updating Stock from PO...");
+        });
+
+        actions.put("generate_stock_reports", () -> {
+            System.out.println("Generating Stock Reports...");
+            openWithReturnToHome(currentWindow, StockReportWindow::new);
+        });
+
+        actions.put("track_low_stock_alerts", () -> {
+            System.out.println("Tracking Low Stock Alerts...");
+        });
+
+        actions.put("view_pos", () -> {
+            System.out.println("Viewing Purchase Orders...");
+            openWithReturnToHome(currentWindow, PurchaseOrdersWindow::new);
+        });
+
+        actions.put("view_items_suppliers", () -> {
+            System.out.println("Viewing Items and Suppliers...");
+        });
+
+        actions.put("generate_po", () -> {
+            System.out.println("Generating Purchase Order...");
+        });
+
+        actions.put("edit_po", () -> {
+            System.out.println("Editing Purchase Order...");
+        });
+
+        actions.put("approve_pos", () -> {
+            System.out.println("Approving Purchase Orders...");
+        });
+
+        actions.put("modify_po_quantity_supplier", () -> {
+            System.out.println("Modifying PO Quantity or Supplier...");
+        });
+
+        actions.put("process_payments", () -> {
+            System.out.println("Processing Payments...");
+        });
+
+        actions.put("generate_financial_reports", () -> {
+            System.out.println("Generating Financial Reports...");
+        });
+
+        actions.put("view_pr", () -> {
+            System.out.println("Viewing Purchase Requisition...");
+        });
+
+        actions.put("view_po", () -> {
+            System.out.println("Viewing Purchase Order...");
+            if (currentWindow != null) currentWindow.dispose();
+
+            TablePage poTable = TablePageFactory.createPOTable();
+            if (poTable != null) {
+                poTable.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                poTable.addWindowListener(new java.awt.event.WindowAdapter() {
+                    @Override
+                    public void windowClosed(java.awt.event.WindowEvent e) {
+                        System.out.println("Returning to Home Page...");
+                        new com.assignment2.gui_albert.HomePage().setVisible(true);
+                    }
+                });
+                poTable.setVisible(true);
+            }
+        });
+
+        actions.put("user_management", () -> {
+            System.out.println("Opening User Management Panel...");
+            if (currentWindow != null) currentWindow.dispose();
+
+            TablePage userTable = TablePageFactory.createUserTable();
+            if (userTable != null) {
+                userTable.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                userTable.addWindowListener(new java.awt.event.WindowAdapter() {
+                    @Override
+                    public void windowClosed(java.awt.event.WindowEvent e) {
+                        System.out.println("Returning to Home Page...");
+                        new com.assignment2.gui_albert.HomePage().setVisible(true);
+                    }
+                });
+                userTable.setVisible(true);
+            }
+        });
+
+        actions.put("main_menu", () -> {
+            System.out.println("Returning to Main Menu...");
+            if (currentWindow != null) currentWindow.dispose();
+            new HomePage().setVisible(true);
+        });
+
+        for (Map.Entry<String, Runnable> entry : actions.entrySet()) {
+            JButton button = new JButton(toTitle(entry.getKey()));
+            button.setPreferredSize(new Dimension(200, 40));
+            button.addActionListener(e -> entry.getValue().run());
+            buttons.put(entry.getKey(), button);
+        }
+
+        return buttons;
+    }
+
+    public static JButton getButton(String functionName) {
+        return createFunctionButtons(null).get(functionName);
+    }
+
+    private static String toTitle(String key) {
+        String[] words = key.split("_");
+        StringBuilder title = new StringBuilder();
+        for (String word : words) {
+            title.append(Character.toUpperCase(word.charAt(0)))
+                 .append(word.substring(1)).append(" ");
+        }
+        return title.toString().trim();
+    }
+
+    public static void openWithReturnToHome(JFrame currentWindow, Supplier<? extends JFrame> targetPageSupplier) {
+        currentWindow.dispose();
+
+        JFrame page = targetPageSupplier.get();
+        page.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+
+        page.addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosed(java.awt.event.WindowEvent e) {
+                System.out.println("Returning to Home Page...");
+                new HomePage().setVisible(true);
+            }
+        });
+
+        page.setVisible(true);
+    }
+}

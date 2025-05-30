@@ -1,0 +1,32 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Main",
+            "request": "launch",
+            "mainClass": "com.assignment2.Main",
+            "projectName": "inventory-management"
+        },
+        {
+            "type": "java",
+            "name": "InventoryManager",
+            "request": "launch",
+            "mainClass": "InventoryManager",
+            "projectName": "inventory-management"
+        },
+        {
+            "type": "java",
+            "name": "Launch InventoryManager",
+            "request": "launch",
+            "mainClass": "InventoryManager",
+            "projectName": "assignment2",
+            "classPaths": [
+                "${workspaceFolder}"
+            ],
+            "modulePaths": [
+                "${workspaceFolder}"
+            ]
+        }
+    ]
+}

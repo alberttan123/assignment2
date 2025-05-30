@@ -1,0 +1,12 @@
+{
+    "java.project.referencedLibraries": [
+        "lib/**/*.jar"
+    ],
+    "java.project.sourcePaths": [
+        "."
+    ],
+    "java.project.outputPath": "bin",
+    "java.debug.settings.onBuildFailureProceed": true,
+    "java.project.explorer.showNonJavaResources": false,
+    "java.configuration.updateBuildConfiguration": "automatic"
+}
