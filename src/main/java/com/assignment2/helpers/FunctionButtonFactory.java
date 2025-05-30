@@ -97,11 +97,29 @@ public class FunctionButtonFactory {
             System.out.println("Viewing Purchase Requisition...");
         });
 
-        actions.put("view_po", () -> {
+        actions.put("view_all_po", () -> {
             System.out.println("Viewing Purchase Order...");
             if (currentWindow != null) currentWindow.dispose();
 
             TablePage poTable = TablePageFactory.createPOTable();
+            if (poTable != null) {
+                poTable.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                poTable.addWindowListener(new java.awt.event.WindowAdapter() {
+                    @Override
+                    public void windowClosed(java.awt.event.WindowEvent e) {
+                        System.out.println("Returning to Home Page...");
+                        new com.assignment2.gui_albert.HomePage().setVisible(true);
+                    }
+                });
+                poTable.setVisible(true);
+            }
+        });
+
+        actions.put("approve_pos", () -> {
+            System.out.println("Viewing Approve Purchase Order...");
+            if (currentWindow != null) currentWindow.dispose();
+
+            TablePage poTable = TablePageFactory.createApprovePOTable();
             if (poTable != null) {
                 poTable.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
                 poTable.addWindowListener(new java.awt.event.WindowAdapter() {
@@ -156,10 +174,22 @@ public class FunctionButtonFactory {
     private static String toTitle(String key) {
         String[] words = key.split("_");
         StringBuilder title = new StringBuilder();
+
         for (String word : words) {
-            title.append(Character.toUpperCase(word.charAt(0)))
-                 .append(word.substring(1)).append(" ");
+            if (word.length() == 2) {
+                // ALL CAPS for 2-letter words
+                title.append(word.toUpperCase()).append(" ");
+            } else if (word.length() == 3 && !word.equals("all") && !word.equals("low")) {
+                // First 2 letters capitalized for 3-letter words
+                title.append(word.substring(0, 2).toUpperCase())
+                    .append(word.substring(2)).append(" ");
+            } else if (word.length() > 0) {
+                // Capitalize first letter for others
+                title.append(Character.toUpperCase(word.charAt(0)))
+                    .append(word.substring(1)).append(" ");
+            }
         }
+
         return title.toString().trim();
     }
 

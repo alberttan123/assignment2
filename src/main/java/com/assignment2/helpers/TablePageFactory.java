@@ -45,6 +45,7 @@ public class TablePageFactory {
         try{
             String filePath = "resources/PurchaseOrder.txt";
             JsonArray arr = JsonStorageHelper.loadAsJsonArray(filePath);
+            poTableHandler.setIsApprove(false);
             JsonArray convertedArray = poTableHandler.convert(arr);
             String[] excluded = {};
             List<String> columnOrder = List.of();
@@ -58,8 +59,36 @@ public class TablePageFactory {
 
             tablePage = new TablePage("Purchase Orders", true, false, false, excluded, combined, columnOrder, pointerKeyPath, convertedArray, true);
 
-            tablePage.setTableActionHandler(new poTableHandler(tablePage));
-            tablePage.setTableActionAdapter(new poTableHandler(tablePage));
+            tablePage.setTableActionHandler(new poTableHandler(tablePage, false));
+            tablePage.setTableActionAdapter(new poTableHandler(tablePage, false));
+        }catch(IOException e){
+            e.printStackTrace();
+            System.out.println("PurchaseOrder.txt not found.");
+        }
+        return tablePage;
+    }
+
+    public static TablePage createApprovePOTable() {
+        TablePage tablePage = null;
+        try{
+            String filePath = "resources/PurchaseOrder.txt";
+            JsonArray arr = JsonStorageHelper.loadAsJsonArray(filePath);
+            poTableHandler.setIsApprove(true);
+            JsonArray convertedArray = poTableHandler.convert(arr);
+            String[] excluded = {};
+            List<String> columnOrder = List.of();
+
+            // Combined columns
+            Map<String, String> combined = new HashMap<>();
+            // combined.put("Full Name", "name.fname name.lname");
+            // combined.put("Birthdate", "dob.day dob.month dob.year");
+
+            String pointerKeyPath = null;
+
+            tablePage = new TablePage("Purchase Orders", true, false, false, excluded, combined, columnOrder, pointerKeyPath, convertedArray, true);
+
+            tablePage.setTableActionHandler(new poTableHandler(tablePage, true));
+            tablePage.setTableActionAdapter(new poTableHandler(tablePage, true));
         }catch(IOException e){
             e.printStackTrace();
             System.out.println("PurchaseOrder.txt not found.");

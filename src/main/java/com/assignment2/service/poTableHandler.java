@@ -16,10 +16,16 @@ import com.google.gson.JsonObject;
 public class poTableHandler extends TableActionAdapter{
 
     private TablePage page;
-    private String filePath = "resources/PurchaseOrder.txt";
+    private static boolean isApprove;
+    private static String filePath = "resources/PurchaseOrder.txt";
 
-    public poTableHandler(TablePage page){
+    public poTableHandler(TablePage page, boolean isApprove){
         this.page = page;
+        poTableHandler.isApprove = isApprove;
+    }
+
+    public static void setIsApprove(boolean isApprove){
+        poTableHandler.isApprove = isApprove;
     }
 
     @Override
@@ -66,7 +72,7 @@ public class poTableHandler extends TableActionAdapter{
             if (found) {
                 JsonStorageHelper.saveToJson(filePath, poList);
                 JOptionPane.showMessageDialog(null, "PO approved successfully!");
-                page.refreshTableData(poList);
+                page.refreshTableData(convert(poList));
             }
 
         } catch (IOException e) {
@@ -103,7 +109,7 @@ public class poTableHandler extends TableActionAdapter{
             if (found) {
                 JsonStorageHelper.saveToJson(filePath, poList);
                 JOptionPane.showMessageDialog(null, "PO rejected successfully!");
-                page.refreshTableData(poList);
+                page.refreshTableData(convert(poList));
             }
 
         } catch (IOException e) {
@@ -117,6 +123,11 @@ public class poTableHandler extends TableActionAdapter{
 
         for (JsonElement el : rawArray) {
             JsonObject original = el.getAsJsonObject();
+
+            if (isApprove && !original.get("status").getAsString().equalsIgnoreCase("Pending")) {
+                continue; // if isApprove = true, only show PO with status "Pending"
+            }
+
             JsonObject converted = new JsonObject();
 
             converted.addProperty("poId", original.get("poId").getAsInt());

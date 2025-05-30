@@ -37,7 +37,8 @@ public class RoleAccessControl {
                 "process_payments",
                 "generate_financial_reports",
                 "view_pr",
-                "view_po"
+                "view_all_po",
+                "approve_pos"
         )));
 
         roleAccessMap.put("admin", new HashSet<>(Arrays.asList(
