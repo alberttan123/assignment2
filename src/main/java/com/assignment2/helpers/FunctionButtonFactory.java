@@ -11,6 +11,7 @@ import com.assignment2.gui_albert.TablePage;
 import com.assignment2.gui_xiang.ItemsWindow;
 import com.assignment2.gui_xiang.PurchaseOrdersWindow;
 import com.assignment2.gui_xiang.StockReportWindow;
+import com.assignment2.gui_heishvear.ManageItemsWindow;
 
 public class FunctionButtonFactory {
 
@@ -20,6 +21,7 @@ public class FunctionButtonFactory {
 
         actions.put("manage_items", () -> {
             System.out.println("Opening Item Management Window...");
+            openWithReturnToHome(currentWindow, ManageItemsWindow::new);
         });
 
         actions.put("manage_suppliers", () -> {
