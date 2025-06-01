@@ -9,17 +9,17 @@ public class EditDialogContext {
     public JsonObject editedData;     // Editable fields (label-based)
     public JsonObject originalData;   // Full raw record (IDs, raw keys)
     public String tableName;          // Optional: for conditional logic
-    public Map<String, Object> extra; // Flexible metadata
+    public Map<String, Object> meta; // Flexible metadata
 
     public EditDialogContext() {
-        this.extra = new HashMap<>();
+        this.meta = new HashMap<>();
     }
 
-    public void putExtra(String key, Object value) {
-        this.extra.put(key, value);
+    public void putMeta(String key, Object value) {
+        this.meta.put(key, value);
     }
 
-    public Object getExtra(String key) {
-        return this.extra.get(key);
+    public Object getMeta(String key) {
+        return this.meta.get(key);
     }
 }

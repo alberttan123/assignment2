@@ -1,1 +1,50 @@
-[{"poId":101,"prId":202,"itemId":301,"supplierId":401,"quantity":50,"status":"Approved","generatedByUserId":501,"createdAt":"","approvedByUserId":502,"approvedAt":"2025-05-31 04:51:03","approvedBy":7},{"poId":2,"prId":202,"itemId":301,"supplierId":401,"quantity":50,"status":"Rejected","generatedByUserId":4,"createdAt":"2025-05-31 01:31:49","approvedByUserId":"","approvedAt":"2025-05-31 04:51:13","approvedBy":7},{"poId":"3","prId":202,"itemId":301,"supplierId":"401","quantity":"30","status":"Approved","generatedByUserId":501,"createdAt":"","approvedByUserId":502,"approvedAt":"2025-05-31 04:51:03","approvedBy":7,"Quantity":"20"}]
+[
+  {
+    "poId": 1,
+    "prId": 202,
+    "itemId": 301,
+    "supplierId": 401,
+    "quantity": 50,
+    "status": "Approved",
+    "generatedByUserId": 1,
+    "createdAt": "2025-05-31 01:15:00",
+    "approvedByUserId": 2,
+    "approvedAt": "2025-05-31 04:51:03"
+  },
+  {
+    "poId": 2,
+    "prId": 202,
+    "itemId": 302,
+    "supplierId": 401,
+    "quantity": 50,
+    "status": "Rejected",
+    "generatedByUserId": 3,
+    "createdAt": "2025-05-31 01:31:49",
+    "approvedByUserId": 4,
+    "approvedAt": "2025-05-31 04:51:13"
+  },
+  {
+    "poId": 3,
+    "prId": 202,
+    "itemId": 303,
+    "supplierId": 401,
+    "quantity": 20,
+    "status": "Approved",
+    "generatedByUserId": 5,
+    "createdAt": "2025-05-31 02:10:00",
+    "approvedByUserId": 6,
+    "approvedAt": "2025-05-31 04:51:03"
+  },
+  {
+    "poId": 4,
+    "prId": 203,
+    "itemId": 304,
+    "supplierId": 402,
+    "quantity": 10,
+    "status": "Pending",
+    "generatedByUserId": 7,
+    "createdAt": "2025-05-31 03:00:00",
+    "approvedByUserId": null,
+    "approvedAt": ""
+  }
+]

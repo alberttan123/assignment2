@@ -98,10 +98,6 @@ public class SessionManager {
     }
 
     public static boolean checkPfpExists(){
-        System.out.println("checking if exists: ");
-        System.out.println(currentUser);
-        System.out.println(currentUser.get("profilePicturePath").getAsString());
-        System.out.println(!currentUser.get("profilePicturePath").getAsString().equals(""));
         return !currentUser.get("profilePicturePath").getAsString().equals("");
     }
 
