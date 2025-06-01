@@ -1,6 +1,8 @@
 package com.assignment2.session;
 
 import java.awt.Image;
+import java.io.FileNotFoundException;
+import java.net.URL;
 
 import javax.swing.ImageIcon;
 
@@ -78,14 +80,28 @@ public class SessionManager {
         }
     }
 
-    public static Image getPfp(){
+    public static Image getPfp() {
         String profilePicturePath = currentUser.get("profilePicturePath").getAsString();
-        ImageIcon pfpIcon = new ImageIcon(profilePicturePath);
+
+        // Try loading as a classpath resource
+        URL imageUrl = SessionManager.class.getClassLoader().getResource(profilePicturePath);
+        if (imageUrl == null) {
+            System.err.println("Profile picture not found in classpath: " + profilePicturePath);
+            return null;
+        }
+
+        ImageIcon pfpIcon = new ImageIcon(imageUrl);
+        System.out.println(pfpIcon);
+
         Image img = pfpIcon.getImage().getScaledInstance(100, 100, Image.SCALE_SMOOTH);
         return img;
     }
 
     public static boolean checkPfpExists(){
+        System.out.println("checking if exists: ");
+        System.out.println(currentUser);
+        System.out.println(currentUser.get("profilePicturePath").getAsString());
+        System.out.println(!currentUser.get("profilePicturePath").getAsString().equals(""));
         return !currentUser.get("profilePicturePath").getAsString().equals("");
     }
 

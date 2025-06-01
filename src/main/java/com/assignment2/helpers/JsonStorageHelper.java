@@ -7,10 +7,14 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Reader;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
@@ -44,7 +48,26 @@ public class JsonStorageHelper {
     }
 
     public static JsonArray loadAsJsonArray(String filePath) throws IOException {
-        Reader reader = Files.newBufferedReader(Path.of(filePath));
+        Reader reader;
+
+        Path path = Path.of(filePath);
+        if (Files.exists(path)) {
+            // Try to load from filesystem path
+            reader = Files.newBufferedReader(path);
+        } else {
+            // Fallback to classpath
+            URL resource = JsonStorageHelper.class.getClassLoader().getResource(filePath);
+            if (resource == null) {
+                throw new FileNotFoundException("File not found in filesystem or classpath: " + filePath);
+            }
+
+            try {
+                reader = Files.newBufferedReader(Path.of(resource.toURI()));
+            } catch (URISyntaxException e) {
+                throw new IOException("Invalid URI syntax for classpath resource: " + filePath, e);
+            }
+        }
+
         return JsonParser.parseReader(reader).getAsJsonArray();
     }
 
