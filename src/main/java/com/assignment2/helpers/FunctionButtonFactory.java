@@ -17,6 +17,20 @@ public class FunctionButtonFactory {
 
         actions.put("manage_items", () -> {
             System.out.println("Opening Item Management Window...");
+            if (currentWindow != null) currentWindow.dispose();
+
+            TablePage poTable = TablePageFactory.createItemsTable();
+            if (poTable != null) {
+                poTable.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                poTable.addWindowListener(new java.awt.event.WindowAdapter() {
+                    @Override
+                    public void windowClosed(java.awt.event.WindowEvent e) {
+                        System.out.println("Returning to Home Page...");
+                        new com.assignment2.gui_albert.HomePage().setVisible(true);
+                    }
+                });
+                poTable.setVisible(true);
+            }
         });
 
         actions.put("manage_suppliers", () -> {

@@ -109,7 +109,7 @@ public class TablePageFactory {
         try{
             String filePath = "items.txt";
             JsonArray arr = JsonStorageHelper.loadAsJsonArray(filePath);
-            itemsTableHandler.setIsApprove(false);
+            // itemsTableHandler.setIsApprove(false);
             JsonArray convertedArray = itemsTableHandler.convert(arr);
             String[] excluded = {};
             List<String> columnOrder = List.of();
@@ -121,14 +121,12 @@ public class TablePageFactory {
 
             String pointerKeyPath = null;
 
-            tablePage = new TablePage("Items", true, true, true, excluded, combined, columnOrder, pointerKeyPath, convertedArray, true);
+            tablePage = new TablePage("Items", true, true, true, excluded, combined, columnOrder, pointerKeyPath, convertedArray, false);
 
-            tablePage.setTableActionHandler(new poTableHandler(tablePage, false));
-            tablePage.setTableActionAdapter(new poTableHandler(tablePage, false));
             tablePage.setTableActionHandler(new itemsTableHandler(tablePage, tablePage));
         }catch(IOException e){
             e.printStackTrace();
-            System.out.println("PurchaseOrder.txt not found.");
+            System.out.println("items.txt not found.");
         }
         return tablePage;
     }
