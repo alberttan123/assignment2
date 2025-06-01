@@ -95,7 +95,6 @@ public class JsonStorageHelper {
             if (obj.has(matchingIdField) && obj.get(matchingIdField).getAsString().equals(targetId)) {
                 // Merge fields from updatedData into existing row
                 for (Map.Entry<String, JsonElement> entry : updatedData.entrySet()) {
-                    System.out.println("entry.getKey() + entry.getValue(): " + entry.getKey() + ":" + entry.getValue());
                     obj.add(entry.getKey(), entry.getValue());
                 }
                 updated = true;
@@ -103,14 +102,9 @@ public class JsonStorageHelper {
             }
         }
 
-        System.out.println(updated);
-
         if (!updated) {
             array.add(updatedData);
         }
-
-        System.out.println("File Path: " + filePath);
-        System.out.println("Modified Array: " + array);
         saveToJson(filePath, array);
     }
 
@@ -202,4 +196,18 @@ public class JsonStorageHelper {
         return null;
     }
 
+    public static boolean rowExists(String path, java.util.function.Predicate<JsonObject> condition) {
+        try {
+            JsonArray array = loadAsJsonArray(path);
+            for (JsonElement el : array) {
+                JsonObject row = el.getAsJsonObject();
+                if (condition.test(row)) {
+                    return true;
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 }

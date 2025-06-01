@@ -2,6 +2,7 @@ package com.assignment2.gui_albert;
 
 import com.assignment2.helpers.ComboItem;
 import com.assignment2.helpers.EditDialogContext;
+import com.assignment2.helpers.EditValidator;
 import com.assignment2.gui_albert.FieldDefinition;
 import com.assignment2.helpers.JsonDropdownLoader;
 import com.google.gson.JsonObject;
@@ -19,13 +20,24 @@ public class EditDialog extends JDialog {
     private final EditDialogContext context;
     private final Map<String, JComponent> inputFields = new HashMap<>();
 
+    private final EditValidator validator;
+
     public EditDialog(JFrame parent, Consumer<JsonObject> onSaveCallback,
-                      Map<String, FieldDefinition> fieldDefinitions, EditDialogContext context) {
+                    Map<String, FieldDefinition> fieldDefinitions,
+                    EditDialogContext context,
+                    EditValidator validator) {
         super(parent, "Edit Record", true);
         this.onSaveCallback = onSaveCallback;
         this.fieldDefinitions = fieldDefinitions;
         this.context = context;
+        this.validator = validator;
         initializeDialog();
+    }
+
+    public EditDialog(JFrame parent, Consumer<JsonObject> onSaveCallback,
+                    Map<String, FieldDefinition> fieldDefinitions,
+                    EditDialogContext context) {
+        this(parent, onSaveCallback, fieldDefinitions, context, null);
     }
 
     private void initializeDialog() {
@@ -114,6 +126,11 @@ public class EditDialog extends JDialog {
 
             if (def.regex != null && value != null && !value.matches(def.regex)) {
                 JOptionPane.showMessageDialog(this, (label != null ? label : jsonKey) + " is invalid.");
+                return;
+            }
+
+            if (validator != null && !validator.validate(newData, context)) {
+                // validator handles showing the message
                 return;
             }
 

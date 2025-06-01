@@ -1,1 +1,10 @@
-[{"supplierId":401,"itemId":301,"price":1200.5,"stockLevel":150},{"supplierId":402,"itemId":301,"price":1175.0,"stockLevel":100},{"supplierId":403,"itemId":301,"price":1250.0,"stockLevel":200},{"supplierId":402,"itemId":302,"price":45.99,"stockLevel":300},{"supplierId":401,"itemId":303,"price":320.0,"stockLevel":85},{"supplierId":403,"itemId":303,"price":310.0,"stockLevel":60}]
+[
+  { "supplierId": 401, "itemId": 301, "price": 1200.5, "stockLevel": 150 },
+  { "supplierId": 402, "itemId": 301, "price": 1175.0, "stockLevel": 100 },
+  { "supplierId": 403, "itemId": 301, "price": 1250.0, "stockLevel": 200 },
+
+  { "supplierId": 402, "itemId": 302, "price": 45.99, "stockLevel": 300 },
+
+  { "supplierId": 401, "itemId": 303, "price": 320.0, "stockLevel": 85 },
+  { "supplierId": 403, "itemId": 303, "price": 310.0, "stockLevel": 60 }
+]

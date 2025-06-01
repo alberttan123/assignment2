@@ -13,6 +13,7 @@ import com.assignment2.gui_albert.EditDialog;
 import com.assignment2.gui_albert.FieldDefinition;
 import com.assignment2.gui_albert.TablePage;
 import com.assignment2.helpers.EditDialogContext;
+import com.assignment2.helpers.EditValidator;
 import com.assignment2.helpers.JsonStorageHelper;
 import com.assignment2.session.SessionManager;
 import com.google.gson.JsonArray;
@@ -44,11 +45,9 @@ public class poTableHandler extends TableActionAdapter{
     public void onEdit(JsonObject record) {
         String itemName = record.get("Item").getAsString();
         String supplierName = record.get("Supplier").getAsString();
-
-        // Find original row
         String itemId = JsonStorageHelper.lookupValueByLabel("items.txt", "itemName", "itemId", itemName);
         String supplierId = JsonStorageHelper.lookupValueByLabel("Supplier.txt", "name", "supplierId", supplierName);
-        String compositeKey = supplierId + "-" + itemId;
+        //ahhhhhhhhhhhhh
 
         JsonArray poList;
         try {
@@ -58,13 +57,15 @@ public class poTableHandler extends TableActionAdapter{
             return;
         }
 
+        // Find original row
+        int targetPoId = record.get("poId").getAsInt();
+
         JsonObject original = null;
         for (JsonElement el : poList) {
             JsonObject obj = el.getAsJsonObject();
-            String id = obj.get("supplierId").getAsString() + "-" + obj.get("itemId").getAsString();
-            originalDataMap.put(id, obj);
-            if (id.equals(compositeKey)) {
+            if (obj.get("poId").getAsInt() == targetPoId) {
                 original = obj;
+                break;
             }
         }
 
@@ -92,8 +93,11 @@ public class poTableHandler extends TableActionAdapter{
         context.editedData.addProperty("supplierId", supplierId);
         context.editedData.addProperty("Quantity", original.get("quantity").getAsString());
         context.tableName = "purchase_order";
+        context.putMeta("supplierId", supplierId);
+        context.putMeta("itemId", itemId);
 
-        new EditDialog(null, updatedData -> {
+
+        new EditDialog(page, updatedData -> {
             // Ensure poId is preserved from the original data
             String poId = context.originalData.get("poId").getAsString();
             updatedData.addProperty("poId", poId);
@@ -107,8 +111,30 @@ public class poTableHandler extends TableActionAdapter{
                 JOptionPane.showMessageDialog(null, "Failed to update PO record.");
                 e.printStackTrace();
             }
-        }, fieldDefs, context).setVisible(true);
+        }, fieldDefs, context, (EditValidator) (newData, ctx) -> {
 
+            // if no changes made, close (won't show Message Dialog)
+            if (newData == null || newData.entrySet().isEmpty()) {
+                System.out.println("No changes made. Skipping validation.");
+                return true;
+            }
+
+            String validatedSupplierId = ctx.getMeta("supplierId").toString();
+            String validatedItemId = ctx.getMeta("itemId").toString();
+            
+            //checks if supplier has the item
+            boolean isValid = JsonStorageHelper.rowExists("supplier_items.txt", row ->
+                row.get("supplierId").getAsString().equals(validatedSupplierId) &&
+                row.get("itemId").getAsString().equals(validatedItemId)
+            );
+
+            if (!isValid) {
+                JOptionPane.showMessageDialog(null, "Selected supplier does not provide this item.");
+                return false;
+            }
+
+            return true;
+        }).setVisible(true);
     }
 
     @Override
@@ -218,7 +244,7 @@ public class poTableHandler extends TableActionAdapter{
 
             // Optional: if approved
             if (original.has("approvedByUserId") && !original.get("approvedByUserId").isJsonNull()) {
-                converted.addProperty("Approved By", getNameById("data/users.txt", "userId", original.get("generatedByUserId").getAsInt(), "email"));
+                converted.addProperty("Approved By", getNameById("data/users.txt", "userId", original.get("approvedByUserId").getAsInt(), "email"));
             } else {
                 converted.addProperty("Approved By", "—");
             }
