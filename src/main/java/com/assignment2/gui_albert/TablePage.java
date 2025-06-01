@@ -244,15 +244,6 @@ public class TablePage extends GUI {
             });
         }
 
-        table.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                if (evt.getClickCount() == 2 && table.getSelectedRow() != -1) {
-                    int row = table.getSelectedRow();
-                    JOptionPane.showMessageDialog(null, "Double-clicked row: " + row);
-                }
-            }
-        });
-
         searchField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
             public void insertUpdate(DocumentEvent e) {
                 applyFilter();

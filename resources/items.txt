@@ -1,42 +1,14 @@
 [
   {
     "itemId": 301,
-    "itemName": "Laptop",
-    "supplier": {
-      "supplierId": 401,
-      "name": "Tech Supplies Co."
-    },
-    "stockLevel": 200,
-    "price": 200.0
+    "itemName": "Laptop"
   },
   {
     "itemId": 302,
-    "itemName": "Keyboard",
-    "supplier": {
-      "supplierId": 402,
-      "name": "Office Gear Ltd."
-    },
-    "stockLevel": 300,
-    "price": 45.99
+    "itemName": "Keyboard"
   },
   {
     "itemId": 303,
-    "itemName": "Monitor",
-    "supplier": {
-      "supplierId": 401,
-      "name": "Tech Supplies Co."
-    },
-    "stockLevel": 85,
-    "price": 320.0
-  },
-  {
-    "itemId": 304,
-    "itemName": "Mouse",
-    "supplier": {
-      "supplierId": 403,
-      "name": "Peripherals Inc."
-    },
-    "stockLevel": 200,
-    "price": 25.75
+    "itemName": "Monitor"
   }
 ]

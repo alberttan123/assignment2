@@ -8,9 +8,6 @@ import java.util.function.Supplier;
 
 import com.assignment2.gui_albert.HomePage;
 import com.assignment2.gui_albert.TablePage;
-import com.assignment2.gui_xiang.ItemsWindow;
-import com.assignment2.gui_xiang.PurchaseOrdersWindow;
-import com.assignment2.gui_xiang.StockReportWindow;
 
 public class FunctionButtonFactory {
 
@@ -44,7 +41,6 @@ public class FunctionButtonFactory {
 
         actions.put("view_items", () -> {
             System.out.println("Viewing Items...");
-            openWithReturnToHome(currentWindow, ItemsWindow::new);
         });
 
         actions.put("update_stock_from_po", () -> {
@@ -53,7 +49,6 @@ public class FunctionButtonFactory {
 
         actions.put("generate_stock_reports", () -> {
             System.out.println("Generating Stock Reports...");
-            openWithReturnToHome(currentWindow, StockReportWindow::new);
         });
 
         actions.put("track_low_stock_alerts", () -> {
@@ -62,7 +57,6 @@ public class FunctionButtonFactory {
 
         actions.put("view_pos", () -> {
             System.out.println("Viewing Purchase Orders...");
-            openWithReturnToHome(currentWindow, PurchaseOrdersWindow::new);
         });
 
         actions.put("view_items_suppliers", () -> {

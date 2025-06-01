@@ -2,19 +2,16 @@
   {
     "supplierId": 401,
     "name": "Tech Supplies Co.",
-    "itemsSupplied": [
-      {
-        "itemId": 301,
-        "itemName": "Laptop",
-        "stockLevel": 150,
-        "price": 1200.50
-      },
-      {
-        "itemId": 303,
-        "itemName": "Monitor",
-        "stockLevel": 85,
-        "price": 320.00
-      }
-    ]
+    "address": "123 Tech Lane"
+  },
+  {
+    "supplierId": 402,
+    "name": "Office Gear Ltd.",
+    "address": "45 Office Park"
+  },
+  {
+    "supplierId": 403,
+    "name": "Global Electronics",
+    "address": "9 Global Plaza"
   }
 ]

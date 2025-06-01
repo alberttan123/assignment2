@@ -15,6 +15,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Map;
 
 public class JsonStorageHelper {
     private static final Gson gson = new Gson();
@@ -45,6 +46,36 @@ public class JsonStorageHelper {
     public static JsonArray loadAsJsonArray(String filePath) throws IOException {
         Reader reader = Files.newBufferedReader(Path.of(filePath));
         return JsonParser.parseReader(reader).getAsJsonArray();
+    }
+
+    public static void updateOrInsert(String filePath, JsonObject updatedData, String matchingIdField) throws IOException {
+        JsonArray array = loadAsJsonArray(filePath);
+        boolean updated = false;
+
+        for (int i = 0; i < array.size(); i++) {
+            JsonObject obj = array.get(i).getAsJsonObject();
+            String targetId = updatedData.get(matchingIdField).getAsString();
+
+            if (obj.has(matchingIdField) && obj.get(matchingIdField).getAsString().equals(targetId)) {
+                // Merge fields from updatedData into existing row
+                for (Map.Entry<String, JsonElement> entry : updatedData.entrySet()) {
+                    System.out.println("entry.getKey() + entry.getValue(): " + entry.getKey() + ":" + entry.getValue());
+                    obj.add(entry.getKey(), entry.getValue());
+                }
+                updated = true;
+                break;
+            }
+        }
+
+        System.out.println(updated);
+
+        if (!updated) {
+            array.add(updatedData);
+        }
+
+        System.out.println("File Path: " + filePath);
+        System.out.println("Modified Array: " + array);
+        saveToJson(filePath, array);
     }
 
     private static void createDefaultUserFile(String path) throws IOException {
@@ -117,4 +148,22 @@ public class JsonStorageHelper {
             return 1; // fallback
         }
     }
+
+    public static String lookupValueByLabel(String file, String labelField, String valueField, String targetLabel) {
+        JsonArray source = null;
+        try {
+            source = JsonStorageHelper.loadAsJsonArray(file);
+        } catch (IOException e) {
+            System.out.println("File not found: " + file);
+            e.printStackTrace();
+        }
+        for (JsonElement el : source) {
+            JsonObject obj = el.getAsJsonObject();
+            if (obj.has(labelField) && obj.get(labelField).getAsString().equals(targetLabel)) {
+                return obj.get(valueField).getAsString();
+            }
+        }
+        return null;
+    }
+
 }
