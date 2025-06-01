@@ -1,14 +1,21 @@
 [
   {
     "itemId": 301,
-    "itemName": "Laptop"
+    "itemName": "Laptop",
+    "stockLevel": "5",
+    "sellingPrice": "1999.99"
   },
   {
     "itemId": 302,
-    "itemName": "Keyboard"
+    "itemName": "Keyboard",
+    "stockLevel": "10",
+    "sellingPrice": "399.99"
+
   },
   {
     "itemId": 303,
-    "itemName": "Monitor"
+    "itemName": "Monitor",
+    "stockLevel": "15",
+    "sellingPrice": "799.99"
   }
 ]

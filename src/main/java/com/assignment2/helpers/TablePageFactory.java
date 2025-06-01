@@ -3,6 +3,7 @@ package com.assignment2.helpers;
 
 import com.assignment2.gui_albert.TablePage;
 import com.assignment2.service.UserTableHandler;
+import com.assignment2.service.itemsTableHandler;
 import com.assignment2.service.poTableHandler;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -98,6 +99,34 @@ public class TablePageFactory {
         }catch(IOException e){
             e.printStackTrace();
             System.out.println("/PurchaseOrder.txt not found.");
+        }
+        return tablePage;
+    }
+
+
+    public static TablePage createItemsTable() {
+        TablePage tablePage = null;
+        try{
+            String filePath = "items.txt";
+            JsonArray arr = JsonStorageHelper.loadAsJsonArray(filePath);
+            // itemsTableHandler.setIsApprove(false);
+            JsonArray convertedArray = itemsTableHandler.convert(arr);
+            String[] excluded = {};
+            List<String> columnOrder = List.of();
+
+            // Combined columns
+            Map<String, String> combined = new HashMap<>();
+            // combined.put("Full Name", "name.fname name.lname");
+            // combined.put("Birthdate", "dob.day dob.month dob.year");
+
+            String pointerKeyPath = null;
+
+            tablePage = new TablePage("Items", true, true, true, excluded, combined, columnOrder, pointerKeyPath, convertedArray, false);
+
+            tablePage.setTableActionHandler(new itemsTableHandler(tablePage, tablePage));
+        }catch(IOException e){
+            e.printStackTrace();
+            System.out.println("items.txt not found.");
         }
         return tablePage;
     }
