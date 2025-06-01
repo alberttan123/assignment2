@@ -6,11 +6,13 @@ import java.io.IOException;
 import com.assignment2.helpers.JsonStorageHelper;
 
 public class LoginService {
-    private static final String USER_DATA_PATH = "resources/data/users.txt";
+    private static final String USER_DATA_PATH = "/data/users.txt";
 
     public static int validateLogin(String email, String password) {
         try {
+            System.out.println("bruh");
             JsonObject root = JsonStorageHelper.loadAsJsonObject(USER_DATA_PATH);
+            System.out.println("bruh");
             JsonArray users = root.getAsJsonArray("users");
 
             for (int i = 0; i < users.size(); i++) {

@@ -37,7 +37,7 @@ public class AccountFormPage extends GUI {
 
     private Mode mode;
     private String editingEmail; // target email for edit modes
-    private static final String USER_PATH = "resources/data/users.txt";
+    private static final String USER_PATH = "/data/users.txt";
 
     private String originalEmail = "";
     private String originalFirstName = "";
@@ -443,10 +443,10 @@ public class AccountFormPage extends GUI {
                     // Obfuscate email
                     String email = emailField.getText();
                     String obfuscated = obfuscateEmail(email);
-                    String outputPath = "data/images/" + obfuscated + ".jpg";
+                    String outputPath = "/data/images/" + obfuscated + ".jpg";
 
                     // Ensure directory exists
-                    File dir = new File("data/images");
+                    File dir = new File("/data/images");
                     if (!dir.exists()) dir.mkdirs();
 
                     // Convert Image to BufferedImage and write as JPEG

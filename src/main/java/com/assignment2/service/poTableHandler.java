@@ -23,7 +23,7 @@ public class poTableHandler extends TableActionAdapter{
 
     private TablePage page;
     private static boolean isApprove;
-    private static String filePath = "resources/PurchaseOrder.txt";
+    private static String filePath = "PurchaseOrder.txt";
     private Map<String, JsonObject> originalDataMap = new LinkedHashMap<>();
 
     public poTableHandler(TablePage page, boolean isApprove){
@@ -46,8 +46,8 @@ public class poTableHandler extends TableActionAdapter{
         String supplierName = record.get("Supplier").getAsString();
 
         // Find original row
-        String itemId = JsonStorageHelper.lookupValueByLabel("resources/items.txt", "itemName", "itemId", itemName);
-        String supplierId = JsonStorageHelper.lookupValueByLabel("resources/Supplier.txt", "name", "supplierId", supplierName);
+        String itemId = JsonStorageHelper.lookupValueByLabel("items.txt", "itemName", "itemId", itemName);
+        String supplierId = JsonStorageHelper.lookupValueByLabel("Supplier.txt", "name", "supplierId", supplierName);
         String compositeKey = supplierId + "-" + itemId;
 
         JsonArray poList;
@@ -75,7 +75,7 @@ public class poTableHandler extends TableActionAdapter{
 
         Map<String, FieldDefinition> fieldDefs = new LinkedHashMap<>();
         fieldDefs.put("supplierId", FieldDefinition
-            .dropdown("resources/Supplier.txt", "name", "supplierId")
+            .dropdown("Supplier.txt", "name", "supplierId")
             .withLabel("Supplier")
             .withKey("supplierId")
             .required());
@@ -99,9 +99,9 @@ public class poTableHandler extends TableActionAdapter{
             updatedData.addProperty("poId", poId);
 
             try {
-                JsonStorageHelper.updateOrInsert("resources/PurchaseOrder.txt", updatedData, "poId");
+                JsonStorageHelper.updateOrInsert("PurchaseOrder.txt", updatedData, "poId");
 
-                JsonArray updatedList = JsonStorageHelper.loadAsJsonArray("resources/PurchaseOrder.txt");
+                JsonArray updatedList = JsonStorageHelper.loadAsJsonArray("PurchaseOrder.txt");
                 page.refreshTableData(convert(updatedList));
             } catch (IOException e) {
                 JOptionPane.showMessageDialog(null, "Failed to update PO record.");
@@ -206,9 +206,9 @@ public class poTableHandler extends TableActionAdapter{
             converted.addProperty("prId", original.get("prId").getAsInt());
 
             // Convert ID fields to names
-            converted.addProperty("Item", getNameById("resources/items.txt", "itemId", original.get("itemId").getAsInt(), "itemName"));
-            converted.addProperty("Supplier", getNameById("resources/Supplier.txt", "supplierId", original.get("supplierId").getAsInt(), "name"));
-            converted.addProperty("Requested By", getNameById("resources/data/users.txt", "userId", original.get("generatedByUserId").getAsInt(), "email"));
+            converted.addProperty("Item", getNameById("items.txt", "itemId", original.get("itemId").getAsInt(), "itemName"));
+            converted.addProperty("Supplier", getNameById("Supplier.txt", "supplierId", original.get("supplierId").getAsInt(), "name"));
+            converted.addProperty("Requested By", getNameById("/data/users.txt", "userId", original.get("generatedByUserId").getAsInt(), "email"));
 
             int quantity = original.get("quantity").getAsInt();
             converted.addProperty("Quantity", quantity);
@@ -218,7 +218,7 @@ public class poTableHandler extends TableActionAdapter{
 
             // Optional: if approved
             if (original.has("approvedByUserId") && !original.get("approvedByUserId").isJsonNull()) {
-                converted.addProperty("Approved By", getNameById("resources/data/users.txt", "userId", original.get("generatedByUserId").getAsInt(), "email"));
+                converted.addProperty("Approved By", getNameById("/data/users.txt", "userId", original.get("generatedByUserId").getAsInt(), "email"));
             } else {
                 converted.addProperty("Approved By", "—");
             }

@@ -80,7 +80,7 @@ public class FirstLoginModal extends JDialog {
         }
 
         try {
-            JsonObject root = JsonStorageHelper.loadAsJsonObject("resources/data/users.txt");
+            JsonObject root = JsonStorageHelper.loadAsJsonObject("/data/users.txt");
             JsonArray users = root.getAsJsonArray("users");
 
             for (int i = 0; i < users.size(); i++) {
@@ -91,7 +91,7 @@ public class FirstLoginModal extends JDialog {
                 }
             }
 
-            JsonStorageHelper.saveToJson("resources/data/users.txt", root);
+            JsonStorageHelper.saveToJson("/data/users.txt", root);
             JOptionPane.showMessageDialog(this, "Password successfully set.");
             dispose();
 
