@@ -6,7 +6,7 @@ import java.io.IOException;
 import com.assignment2.helpers.JsonStorageHelper;
 
 public class LoginService {
-    private static final String USER_DATA_PATH = "data/users.txt";
+    private static final String USER_DATA_PATH = "resources/data/users.txt";
 
     public static int validateLogin(String email, String password) {
         try {

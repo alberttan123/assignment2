@@ -47,7 +47,7 @@ public class TablePage extends GUI {
     private String[] excludedKeys = new String[0];
     private String[] extractedHeaders;
     private String pointerKeyPath; // e.g., "email" or "user.email"
-    private String jsonFilePath;   // e.g., "data/users.txt"
+    private String jsonFilePath;   // e.g., "resources/data/users.txt"
     private TableActionHandler actionHandler;
     private TableActionAdapter actionAdapter;
 

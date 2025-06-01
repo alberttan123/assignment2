@@ -37,7 +37,7 @@ public class AccountFormPage extends GUI {
 
     private Mode mode;
     private String editingEmail; // target email for edit modes
-    private static final String USER_PATH = "data/users.txt";
+    private static final String USER_PATH = "resources/data/users.txt";
 
     private String originalEmail = "";
     private String originalFirstName = "";

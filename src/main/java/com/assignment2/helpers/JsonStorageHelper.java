@@ -129,7 +129,7 @@ public class JsonStorageHelper {
 
     public static int getNextUserId() {
         try {
-            JsonObject root = JsonStorageHelper.loadAsJsonObject("data/users.txt");
+            JsonObject root = JsonStorageHelper.loadAsJsonObject("resources/data/users.txt");
             JsonArray users = root.getAsJsonArray("users");
 
             int maxId = 0;

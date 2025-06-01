@@ -208,7 +208,7 @@ public class poTableHandler extends TableActionAdapter{
             // Convert ID fields to names
             converted.addProperty("Item", getNameById("resources/items.txt", "itemId", original.get("itemId").getAsInt(), "itemName"));
             converted.addProperty("Supplier", getNameById("resources/Supplier.txt", "supplierId", original.get("supplierId").getAsInt(), "name"));
-            converted.addProperty("Requested By", getNameById("data/users.txt", "userId", original.get("generatedByUserId").getAsInt(), "email"));
+            converted.addProperty("Requested By", getNameById("resources/data/users.txt", "userId", original.get("generatedByUserId").getAsInt(), "email"));
 
             int quantity = original.get("quantity").getAsInt();
             converted.addProperty("Quantity", quantity);
@@ -218,7 +218,7 @@ public class poTableHandler extends TableActionAdapter{
 
             // Optional: if approved
             if (original.has("approvedByUserId") && !original.get("approvedByUserId").isJsonNull()) {
-                converted.addProperty("Approved By", getNameById("data/users.txt", "userId", original.get("generatedByUserId").getAsInt(), "email"));
+                converted.addProperty("Approved By", getNameById("resources/data/users.txt", "userId", original.get("generatedByUserId").getAsInt(), "email"));
             } else {
                 converted.addProperty("Approved By", "—");
             }

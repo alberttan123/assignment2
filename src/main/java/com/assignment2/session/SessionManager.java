@@ -95,7 +95,7 @@ public class SessionManager {
         String email = getUserEmail();
 
         try {
-            JsonObject root = com.assignment2.helpers.JsonStorageHelper.loadAsJsonObject("data/users.txt");
+            JsonObject root = com.assignment2.helpers.JsonStorageHelper.loadAsJsonObject("resources/data/users.txt");
             for (var userElement : root.getAsJsonArray("users")) {
                 JsonObject user = userElement.getAsJsonObject();
                 if (user.get("email").getAsString().equalsIgnoreCase(email)) {
