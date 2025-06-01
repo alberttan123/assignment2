@@ -10,9 +10,7 @@ public class LoginService {
 
     public static int validateLogin(String email, String password) {
         try {
-            System.out.println("bruh");
             JsonObject root = JsonStorageHelper.loadAsJsonObject(USER_DATA_PATH);
-            System.out.println("bruh");
             JsonArray users = root.getAsJsonArray("users");
 
             for (int i = 0; i < users.size(); i++) {

@@ -7,7 +7,12 @@ import com.assignment2.service.poTableHandler;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,6 +49,7 @@ public class TablePageFactory {
         TablePage tablePage = null;
         try{
             String filePath = "PurchaseOrder.txt";
+
             JsonArray arr = JsonStorageHelper.loadAsJsonArray(filePath);
             poTableHandler.setIsApprove(false);
             JsonArray convertedArray = poTableHandler.convert(arr);
@@ -91,7 +97,7 @@ public class TablePageFactory {
             tablePage.setTableActionAdapter(new poTableHandler(tablePage, true));
         }catch(IOException e){
             e.printStackTrace();
-            System.out.println("PurchaseOrder.txt not found.");
+            System.out.println("/PurchaseOrder.txt not found.");
         }
         return tablePage;
     }
