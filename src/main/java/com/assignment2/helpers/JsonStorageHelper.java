@@ -36,15 +36,28 @@ public class JsonStorageHelper {
         }
     }
 
-    public static JsonObject loadAsJsonObject(String path) throws IOException {
-        File file = new File(path);
-        if (!file.exists()) {
-            createDefaultUserFile(path);
+    public static JsonObject loadAsJsonObject(String filePath) throws IOException {
+        Reader reader;
+
+        Path path = Path.of(filePath);
+        if (Files.exists(path)) {
+            // Try to load from filesystem path
+            reader = Files.newBufferedReader(path);
+        } else {
+            // Fallback to classpath
+            URL resource = JsonStorageHelper.class.getClassLoader().getResource(filePath);
+            if (resource == null) {
+                throw new FileNotFoundException("File not found in filesystem or classpath: " + filePath);
+            }
+
+            try {
+                reader = Files.newBufferedReader(Path.of(resource.toURI()));
+            } catch (URISyntaxException e) {
+                throw new IOException("Invalid URI syntax for classpath resource: " + filePath, e);
+            }
         }
 
-        try (FileReader reader = new FileReader(file)) {
-            return JsonParser.parseReader(reader).getAsJsonObject();
-        }
+        return JsonParser.parseReader(reader).getAsJsonObject();
     }
 
     public static JsonArray loadAsJsonArray(String filePath) throws IOException {
