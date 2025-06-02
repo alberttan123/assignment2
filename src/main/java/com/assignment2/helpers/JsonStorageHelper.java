@@ -12,6 +12,7 @@ import java.util.function.Predicate;
 
 public class JsonStorageHelper {
     private static final Path DATA_DIR;
+    private static final Gson gson = new Gson();
 
     static {
         try {
@@ -38,10 +39,9 @@ public class JsonStorageHelper {
 
     // ---------- Unified path resolution ----------
     private static Reader resolveReader(String fileName) throws IOException {
-        System.out.println("AHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH");
-        System.out.println("Working dir: " + System.getProperty("user.dir"));
         System.out.println("Resolved data path: " + JsonStorageHelper.DATA_DIR.toAbsolutePath());
         Path resolvedPath = DATA_DIR.resolve(fileName);
+        System.out.println("Accessing file at: "+ resolvedPath);
 
         if (Files.exists(resolvedPath)) {
             return Files.newBufferedReader(resolvedPath);

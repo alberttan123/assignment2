@@ -4,6 +4,7 @@ import com.assignment2.helpers.JsonStorageHelper;
 import com.assignment2.helpers.SimpleDocumentChangeListener;
 import com.assignment2.session.SessionManager;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 
 import javax.imageio.ImageIO;
@@ -355,7 +356,6 @@ public class AccountFormPage extends GUI {
                 if (mode == Mode.CREATE) {
                     String now = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
                     updatedUser.addProperty("createdAt", now);
-                    updatedUser.addProperty("password", "");
                     updatedUser.addProperty("profilePicturePath", "");
                     updatedUser.addProperty("userId", JsonStorageHelper.getNextUserId());
                 }
