@@ -48,6 +48,8 @@ public class LoginPage extends GUI {
         loginButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                System.out.println("AHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH");
+                System.out.println("Working dir: " + System.getProperty("user.dir"));
                 String email = emailField.getText();
                 String password = new String(passwordField.getPassword());
 
