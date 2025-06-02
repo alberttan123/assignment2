@@ -1,24 +1,27 @@
 package com.assignment2.service;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.JTextField;
 
-import com.assignment2.gui_albert.AccountFormPage;
+import com.assignment2.gui_albert.AddPage;
 import com.assignment2.gui_albert.EditDialog;
 import com.assignment2.gui_albert.FieldDefinition;
 import com.assignment2.gui_albert.TablePage;
 import com.assignment2.helpers.EditDialogContext;
 import com.assignment2.helpers.JsonStorageHelper;
-import com.assignment2.session.SessionManager;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-public class itemsTableHandler implements TableActionHandler{
+public class itemsTableHandler implements TableActionHandler {
 
     private JFrame currentPage;
     private TablePage page;
@@ -29,21 +32,38 @@ public class itemsTableHandler implements TableActionHandler{
         this.currentPage = currentPage;
         this.page = page;
     }
-    
+
     @Override
-    public void onAdd(){
-        System.out.println("Error boss");
-        throw new UnsupportedOperationException("onAdd unused");
+    public void onAdd() {
+        LinkedHashMap<String, String> fieldLabels = new LinkedHashMap<>();
+        fieldLabels.put("Item Name", "itemName");
+        fieldLabels.put("Stock Level", "stockLevel");
+        fieldLabels.put("Selling Price", "sellingPrice");
+
+        Map<String, String> dataTypes = Map.of(
+            "itemName", "string",
+            "stockLevel", "int",
+            "sellingPrice", "price"
+        );
+
+        Map<String, Object> fieldOptions = new HashMap<>();
+
+        // Generate next available itemId and inject into the JSON object
+        String primaryKey = "itemId";
+
+        // Pre-inject that ID into the form result on save
+        AddPage dialog = new AddPage(currentPage, filePath, fieldLabels, dataTypes, fieldOptions, primaryKey);
+
+        // Refresh after dialog closes
+        JsonArray updatedList = getLatestData();
+        ((TablePage) currentPage).refreshTableData(convert(updatedList));
     }
 
     @Override
-    public void onEdit(JsonObject record){
+    public void onEdit(JsonObject record) {
         // Extract the item name from the input JSON record
         String itemName = record.get("Item").getAsString();
-
-        // Lookup the itemId using itemName from the file named items.txt
-        String itemId = JsonStorageHelper.lookupValueByLabel("items.txt", "itemName", "itemId", itemName);
-        
+        String itemId = record.get("Item Id").getAsString();
 
         JsonArray itemList;
         try {
@@ -62,7 +82,10 @@ public class itemsTableHandler implements TableActionHandler{
             originalDataMap.put(id, obj);
 
             // If itemId matches, mark it as the original record
-            original = obj;
+            if (id.equals(itemId)) {
+                original = obj;
+                break;
+            }
         }
 
         // If no matching original record was found, show an error
@@ -74,24 +97,24 @@ public class itemsTableHandler implements TableActionHandler{
         Map<String, FieldDefinition> fieldDefs = new LinkedHashMap<>();
         // Field for Item Name
         fieldDefs.put("itemId", FieldDefinition
-            .dropdown("items.txt", "itemName", "itemId")
-            .withLabel("Item")
-            .withKey("itemId")
-            .required());
+                .dropdown("items.txt", "itemName", "itemId")
+                .withLabel("Item")
+                .withKey("itemId")
+                .required());
 
         // Field for Stock Level
-        fieldDefs.put("Stock Level", FieldDefinition
-            .of("int")
-            .withLabel("Stock Level")
-            .withKey("stockLevel")
-            .required());
+        fieldDefs.put("stockLevel", FieldDefinition
+                .of("int")
+                .withLabel("Stock Level")
+                .withKey("stockLevel")
+                .required());
 
         // Field for Selling Price
-        fieldDefs.put("Selling Price", FieldDefinition
-            .of("int")
-            .withLabel("Selling Price")
-            .withKey("sellingPrice")
-            .required());
+        fieldDefs.put("sellingPrice", FieldDefinition
+                .of("int")
+                .withLabel("Selling Price")
+                .withKey("sellingPrice")
+                .required());
 
         // Set up the edit context with original and editable data
         EditDialogContext context = new EditDialogContext();
@@ -100,12 +123,12 @@ public class itemsTableHandler implements TableActionHandler{
 
         // Pre-fill the editable fields with original data
         context.editedData.addProperty("itemId", itemId);
-        context.editedData.addProperty("Stock Level", original.get("stockLevel").getAsString());
-        context.editedData.addProperty("Selling Price", original.get("sellingPrice").getAsString());
+        context.editedData.addProperty("stockLevel", original.get("stockLevel").getAsString());
+        context.editedData.addProperty("sellingPrice", original.get("sellingPrice").getAsString());
         context.tableName = "items";
 
         new EditDialog(null, updatedData -> {
-            // Ensure poId is preserved from the original data
+            // Ensure itemId is preserved from the original data
             String itemIdString = context.originalData.get("itemId").getAsString();
             updatedData.addProperty("itemId", itemIdString);
 
@@ -124,7 +147,7 @@ public class itemsTableHandler implements TableActionHandler{
     }
 
     @Override
-    public void onDelete(JsonObject rowData, String pointerKeyPath){
+    public void onDelete(JsonObject rowData, String pointerKeyPath) {
         // Extract the value of the itemId from the row that is being deleted
         String keyVal = rowData.get("itemId").getAsString();
         // Call helper method to remove the item from the JSON file based on itemId
@@ -134,7 +157,7 @@ public class itemsTableHandler implements TableActionHandler{
     }
 
     // Method to load latest data from items.txt and return it as JsonArray
-    private JsonArray getLatestData(){
+    private JsonArray getLatestData() {
         String jsonFilePath = "items.txt";
         JsonArray root = null;
         try {
@@ -146,7 +169,7 @@ public class itemsTableHandler implements TableActionHandler{
         return root;// Return the loaded data
     }
 
-    public static JsonArray convert(JsonArray rawArray){
+    public static JsonArray convert(JsonArray rawArray) {
         // Initialize a new array to hold the converted objects
         JsonArray convertedArray = new JsonArray();
 
@@ -171,11 +194,11 @@ public class itemsTableHandler implements TableActionHandler{
     private static String getNameById(String filePath, String idKey, int targetId, String nameKey) {
         try {
             JsonArray array = null;
-            if(filePath.contains("users.txt")){
+            if (filePath.contains("users.txt")) {
                 JsonObject obj = JsonStorageHelper.loadAsJsonObject(filePath);
 
                 array = obj.getAsJsonArray("users");
-            }else{
+            } else {
                 array = JsonStorageHelper.loadAsJsonArray(filePath);
             }
             for (JsonElement el : array) {
@@ -200,7 +223,9 @@ public class itemsTableHandler implements TableActionHandler{
 
                 // Retrieve the value of the field based on the pointerKeyPath
                 JsonElement element = obj.get(pointerKeyPath);
-                if (element == null) continue;
+                if (element == null) {
+                    continue;
+                }
 
                 String value = element.getAsString();
                 if (value.equals(keyValue)) {
@@ -223,5 +248,4 @@ public class itemsTableHandler implements TableActionHandler{
             e.printStackTrace();
         }
     }
-
 }
