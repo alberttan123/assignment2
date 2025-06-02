@@ -5,6 +5,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+
+import com.assignment2.helpers.JsonStorageHelper;
 import com.assignment2.service.LoginService;
 import com.assignment2.session.SessionManager;
 import com.google.gson.JsonObject;
@@ -50,6 +52,7 @@ public class LoginPage extends GUI {
             public void actionPerformed(ActionEvent e) {
                 System.out.println("AHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH");
                 System.out.println("Working dir: " + System.getProperty("user.dir"));
+                System.out.println("Resolved data path: " + JsonStorageHelper.DATA_DIR.toAbsolutePath());
                 String email = emailField.getText();
                 String password = new String(passwordField.getPassword());
 
