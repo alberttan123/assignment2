@@ -1,10 +1,10 @@
 [
-  { "supplierId": 401, "itemId": 301, "price": 1200.5 },
-  { "supplierId": 402, "itemId": 301, "price": 1175.0 },
-  { "supplierId": 403, "itemId": 301, "price": 1250.0 },
+  { "supplierItemId": 501, "supplierId": 401, "itemId": 301, "price": 1200.5 },
+  { "supplierItemId": 502, "supplierId": 402, "itemId": 301, "price": 1175.0 },
+  { "supplierItemId": 503, "supplierId": 403, "itemId": 301, "price": 1250.0 },
 
-  { "supplierId": 402, "itemId": 302, "price": 45.99 },
+  { "supplierItemId": 504, "supplierId": 402, "itemId": 302, "price": 45.99 },
 
-  { "supplierId": 401, "itemId": 303, "price": 320.0 },
-  { "supplierId": 403, "itemId": 303, "price": 310.0 }
+  { "supplierItemId": 505, "supplierId": 401, "itemId": 303, "price": 320.0 },
+  { "supplierItemId": 506, "supplierId": 403, "itemId": 303, "price": 310.0 }
 ]
