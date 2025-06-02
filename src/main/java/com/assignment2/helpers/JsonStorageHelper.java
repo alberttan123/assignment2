@@ -11,23 +11,32 @@ import java.util.Map;
 import java.util.function.Predicate;
 
 public class JsonStorageHelper {
-    private static final Path PROJECT_BASE;
+    private static final Path DATA_DIR;
 
     static {
         try {
-            // Get the actual path of the JAR or class files
-            URI baseUri = JsonStorageHelper.class.getProtectionDomain().getCodeSource().getLocation().toURI();
-            PROJECT_BASE = Paths.get(baseUri).getParent();  // this should point to /target or project root
+            // Find the directory where the JAR or classes are located
+            Path classPath = Paths.get(JsonStorageHelper.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+
+            // Go up to project root: from /target/classes → back to project root
+            if (classPath.endsWith("target/classes")) {
+                DATA_DIR = classPath.getParent().getParent().resolve("data");
+            } else {
+                // Fallback for IDE runs (usually user.dir will be correct)
+                DATA_DIR = Paths.get(System.getProperty("user.dir")).resolve("data");
+            }
         } catch (Exception e) {
-            throw new RuntimeException("Failed to resolve project base directory", e);
+            throw new RuntimeException("Failed to resolve data directory", e);
         }
+
+        System.out.println("Resolved data path: " + DATA_DIR.toAbsolutePath());
     }
-
-    private static final Path DATA_DIR = PROJECT_BASE.resolve("data");
-
 
     // ---------- Unified path resolution ----------
     private static Reader resolveReader(String fileName) throws IOException {
+        System.out.println("AHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH");
+        System.out.println("Working dir: " + System.getProperty("user.dir"));
+        System.out.println("Resolved data path: " + JsonStorageHelper.DATA_DIR.toAbsolutePath());
         Path resolvedPath = DATA_DIR.resolve(fileName);
 
         if (Files.exists(resolvedPath)) {

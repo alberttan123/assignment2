@@ -50,9 +50,6 @@ public class LoginPage extends GUI {
         loginButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                System.out.println("AHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH");
-                System.out.println("Working dir: " + System.getProperty("user.dir"));
-                System.out.println("Resolved data path: " + JsonStorageHelper.DATA_DIR.toAbsolutePath());
                 String email = emailField.getText();
                 String password = new String(passwordField.getPassword());
 
