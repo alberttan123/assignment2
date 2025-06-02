@@ -7,6 +7,7 @@ import java.net.URL;
 import java.nio.file.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Predicate;
 
@@ -29,8 +30,6 @@ public class JsonStorageHelper {
         } catch (Exception e) {
             throw new RuntimeException("Failed to resolve data directory", e);
         }
-
-        System.out.println("Resolved data path: " + DATA_DIR.toAbsolutePath());
     }
 
     public static Path getDataPath(String fileName) {
@@ -39,8 +38,8 @@ public class JsonStorageHelper {
 
     // ---------- Unified path resolution ----------
     private static Reader resolveReader(String fileName) throws IOException {
-        System.out.println("Resolved data path: " + JsonStorageHelper.DATA_DIR.toAbsolutePath());
         Path resolvedPath = DATA_DIR.resolve(fileName);
+        System.out.println("Resolved data path: " + JsonStorageHelper.DATA_DIR.toAbsolutePath());
         System.out.println("Accessing file at: "+ resolvedPath);
 
         if (Files.exists(resolvedPath)) {
@@ -132,6 +131,20 @@ public class JsonStorageHelper {
         return null;
     }
 
+    public static Map<String, String> getDropdownOptions(String filePath, String idField, String nameField) {
+        Map<String, String> result = new LinkedHashMap<>();
+        try {
+            JsonArray array = loadAsJsonArray(filePath);
+            for (JsonElement el : array) {
+                JsonObject obj = el.getAsJsonObject();
+                result.put(obj.get(nameField).getAsString(), obj.get(idField).getAsString());
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
+
     // ---------- User scaffolding ----------
     public static void createDefaultUserFile(String path) throws IOException {
         File file = new File(path);
@@ -187,6 +200,23 @@ public class JsonStorageHelper {
                 JsonObject user = elem.getAsJsonObject();
                 if (user.has("userId") && !user.get("userId").isJsonNull()) {
                     maxId = Math.max(maxId, user.get("userId").getAsInt());
+                }
+            }
+            return maxId + 1;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return 1;
+        }
+    }
+
+    public static int getNextId(String filePath, String idKey) {
+        try {
+            JsonArray root = loadAsJsonArray(filePath);
+            int maxId = 0;
+            for (JsonElement elem : root) {
+                JsonObject user = elem.getAsJsonObject();
+                if (user.has(idKey) && !user.get(idKey).isJsonNull()) {
+                    maxId = Math.max(maxId, user.get(idKey).getAsInt());
                 }
             }
             return maxId + 1;
