@@ -7,6 +7,7 @@ import com.assignment2.gui_xiang.UpdateStockFromApprovedPOs;
 import com.assignment2.service.UserTableHandler;
 import com.assignment2.service.itemsTableHandler;
 import com.assignment2.service.poTableHandler;
+import com.assignment2.service.StockReportTableHandler;
 import com.assignment2.service.SupplierItemsTableHandler;
 import com.assignment2.service.SupplierTableHandler;
 import com.google.gson.JsonArray;
@@ -227,13 +228,13 @@ public class TablePageFactory {
         return tablePage;
     }
     
-    public static TablePage createSupplierItemsTable() {
+    public static TablePage createStockReportTable() {
         TablePage tablePage = null;
         try{
-            String filePath = "supplier_items.txt";
+            String filePath = "items.txt";
             JsonArray arr = JsonStorageHelper.loadAsJsonArray(filePath);
             // itemsTableHandler.setIsApprove(false);
-            JsonArray convertedArray = SupplierItemsTableHandler.convert(arr);
+            JsonArray convertedArray = StockReportTableHandler.convert(arr);
             String[] excluded = {};
             List<String> columnOrder = List.of();
 
@@ -242,14 +243,14 @@ public class TablePageFactory {
             // combined.put("Full Name", "name.fname name.lname");
             // combined.put("Birthdate", "dob.day dob.month dob.year");
 
-            String pointerKeyPath = "supplierId";
+            String pointerKeyPath = "itemId";
 
-            tablePage = new TablePage("Supplier Items", true, true, true, excluded, combined, columnOrder, pointerKeyPath, convertedArray, false);
+            tablePage = new TablePage("Stock Report", false, false, false, excluded, combined, columnOrder, pointerKeyPath, convertedArray, false);
 
-            tablePage.setTableActionHandler(new SupplierItemsTableHandler(tablePage, tablePage));
+            tablePage.setTableActionHandler(new StockReportTableHandler(tablePage, tablePage));
         }catch(IOException e){
             e.printStackTrace();
-            System.out.println("supplier_items.txt not found.");
+            System.out.println("items.txt not found.");
         }
         return tablePage;
     }   
