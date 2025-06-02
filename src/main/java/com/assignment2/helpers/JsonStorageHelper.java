@@ -1,99 +1,70 @@
 package com.assignment2.helpers;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Reader;
-import java.net.URISyntaxException;
+import com.google.gson.*;
+import java.io.*;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.nio.file.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
+import java.util.function.Predicate;
 
 public class JsonStorageHelper {
     private static final Gson gson = new Gson();
 
+    // ---------- Unified path resolution ----------
+    private static Reader resolveReader(String filePath) throws IOException {
+        Path path = Path.of(filePath);
+        if (Files.exists(path)) {
+            return Files.newBufferedReader(path);
+        }
+
+        // Fallback to classpath
+        InputStream stream = JsonStorageHelper.class.getClassLoader().getResourceAsStream(filePath);
+        if (stream != null) {
+            return new InputStreamReader(stream);
+        }
+
+        throw new FileNotFoundException("File not found in filesystem or classpath: " + filePath);
+    }
+
+    // ---------- General JSON loading ----------
+    public static JsonObject loadAsJsonObject(String filePath) throws IOException {
+        try (Reader reader = resolveReader(filePath)) {
+            return JsonParser.parseReader(reader).getAsJsonObject();
+        }
+    }
+
+    public static JsonArray loadAsJsonArray(String filePath) throws IOException {
+        try (Reader reader = resolveReader(filePath)) {
+            return JsonParser.parseReader(reader).getAsJsonArray();
+        }
+    }
+
     public static <T> T loadFromJson(String path, Class<T> type) throws IOException {
-        try (FileReader reader = new FileReader(path)) {
+        try (Reader reader = resolveReader(path)) {
             return gson.fromJson(reader, type);
         }
     }
 
     public static void saveToJson(String path, Object data) throws IOException {
-        try (FileWriter writer = new FileWriter(path)) {
+        Path target = Path.of(path);
+        if (target.getParent() != null) {
+            Files.createDirectories(target.getParent());
+        }
+        try (Writer writer = Files.newBufferedWriter(target)) {
             gson.toJson(data, writer);
         }
     }
 
-    public static JsonObject loadAsJsonObject(String filePath) throws IOException {
-        Reader reader;
-
-        Path path = Path.of(filePath);
-        if (Files.exists(path)) {
-            // Try to load from filesystem path
-            reader = Files.newBufferedReader(path);
-        } else {
-            // Fallback to classpath
-            URL resource = JsonStorageHelper.class.getClassLoader().getResource(filePath);
-            if (resource == null) {
-                throw new FileNotFoundException("File not found in filesystem or classpath: " + filePath);
-            }
-
-            try {
-                reader = Files.newBufferedReader(Path.of(resource.toURI()));
-            } catch (URISyntaxException e) {
-                throw new IOException("Invalid URI syntax for classpath resource: " + filePath, e);
-            }
-        }
-
-        return JsonParser.parseReader(reader).getAsJsonObject();
-    }
-
-    public static JsonArray loadAsJsonArray(String filePath) throws IOException {
-        Reader reader;
-
-        Path path = Path.of(filePath);
-        if (Files.exists(path)) {
-            // Try to load from filesystem path
-            reader = Files.newBufferedReader(path);
-        } else {
-            // Fallback to classpath
-            URL resource = JsonStorageHelper.class.getClassLoader().getResource(filePath);
-            if (resource == null) {
-                throw new FileNotFoundException("File not found in filesystem or classpath: " + filePath);
-            }
-
-            try {
-                reader = Files.newBufferedReader(Path.of(resource.toURI()));
-            } catch (URISyntaxException e) {
-                throw new IOException("Invalid URI syntax for classpath resource: " + filePath, e);
-            }
-        }
-
-        return JsonParser.parseReader(reader).getAsJsonArray();
-    }
-
+    // ---------- Update logic ----------
     public static void updateOrInsert(String filePath, JsonObject updatedData, String matchingIdField) throws IOException {
         JsonArray array = loadAsJsonArray(filePath);
         boolean updated = false;
 
         for (int i = 0; i < array.size(); i++) {
             JsonObject obj = array.get(i).getAsJsonObject();
-            String targetId = updatedData.get(matchingIdField).getAsString();
-
-            if (obj.has(matchingIdField) && obj.get(matchingIdField).getAsString().equals(targetId)) {
-                // Merge fields from updatedData into existing row
+            if (obj.has(matchingIdField) && obj.get(matchingIdField).getAsString().equals(updatedData.get(matchingIdField).getAsString())) {
                 for (Map.Entry<String, JsonElement> entry : updatedData.entrySet()) {
                     obj.add(entry.getKey(), entry.getValue());
                 }
@@ -102,19 +73,43 @@ public class JsonStorageHelper {
             }
         }
 
-        if (!updated) {
-            array.add(updatedData);
-        }
+        if (!updated) array.add(updatedData);
         saveToJson(filePath, array);
     }
 
-    private static void createDefaultUserFile(String path) throws IOException {
-        File file = new File(path);
-        File parentDir = file.getParentFile();
-
-        if (parentDir != null && !parentDir.exists()){
-            parentDir.mkdirs();
+    // ---------- Utility lookups ----------
+    public static boolean rowExists(String path, Predicate<JsonObject> condition) {
+        try {
+            JsonArray array = loadAsJsonArray(path);
+            for (JsonElement el : array) {
+                if (condition.test(el.getAsJsonObject())) return true;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+        return false;
+    }
+
+    public static String lookupValueByLabel(String file, String labelField, String valueField, String targetLabel) {
+        try {
+            JsonArray source = loadAsJsonArray(file);
+            for (JsonElement el : source) {
+                JsonObject obj = el.getAsJsonObject();
+                if (obj.has(labelField) && obj.get(labelField).getAsString().equals(targetLabel)) {
+                    return obj.get(valueField).getAsString();
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("File not found: " + file);
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    // ---------- User scaffolding ----------
+    public static void createDefaultUserFile(String path) throws IOException {
+        File file = new File(path);
+        if (file.getParentFile() != null) file.getParentFile().mkdirs();
 
         JsonObject root = new JsonObject();
         JsonArray users = new JsonArray();
@@ -128,12 +123,12 @@ public class JsonStorageHelper {
         users.add(createUser("asdf", "asdf", "admin", "Testing", "Account", "", 23, 12, 2005, 7));
 
         root.add("users", users);
-
         saveToJson(path, root);
         System.out.println("Created default users.txt at: " + path);
     }
 
-    private static JsonObject createUser(String email, String password, String role, String fname, String lname, String profilePicturePath, int day, int month, int year, int userId) {
+    private static JsonObject createUser(String email, String password, String role, String fname, String lname,
+                                         String profilePicturePath, int day, int month, int year, int userId) {
         String now = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         JsonObject user = new JsonObject();
         user.addProperty("userId", userId);
@@ -159,55 +154,19 @@ public class JsonStorageHelper {
 
     public static int getNextUserId() {
         try {
-            JsonObject root = JsonStorageHelper.loadAsJsonObject("/data/users.txt");
+            JsonObject root = loadAsJsonObject("data/users.txt");
             JsonArray users = root.getAsJsonArray("users");
-
             int maxId = 0;
             for (JsonElement elem : users) {
                 JsonObject user = elem.getAsJsonObject();
                 if (user.has("userId") && !user.get("userId").isJsonNull()) {
-                    int id = user.get("userId").getAsInt();
-                    if (id > maxId) {
-                        maxId = id;
-                    }
+                    maxId = Math.max(maxId, user.get("userId").getAsInt());
                 }
             }
             return maxId + 1;
         } catch (IOException e) {
             e.printStackTrace();
-            return 1; // fallback
+            return 1;
         }
-    }
-
-    public static String lookupValueByLabel(String file, String labelField, String valueField, String targetLabel) {
-        JsonArray source = null;
-        try {
-            source = JsonStorageHelper.loadAsJsonArray(file);
-        } catch (IOException e) {
-            System.out.println("File not found: " + file);
-            e.printStackTrace();
-        }
-        for (JsonElement el : source) {
-            JsonObject obj = el.getAsJsonObject();
-            if (obj.has(labelField) && obj.get(labelField).getAsString().equals(targetLabel)) {
-                return obj.get(valueField).getAsString();
-            }
-        }
-        return null;
-    }
-
-    public static boolean rowExists(String path, java.util.function.Predicate<JsonObject> condition) {
-        try {
-            JsonArray array = loadAsJsonArray(path);
-            for (JsonElement el : array) {
-                JsonObject row = el.getAsJsonObject();
-                if (condition.test(row)) {
-                    return true;
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return false;
     }
 }

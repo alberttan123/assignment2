@@ -38,55 +38,67 @@ public class itemsTableHandler implements TableActionHandler{
 
     @Override
     public void onEdit(JsonObject record){
+        // Extract the item name from the input JSON record
         String itemName = record.get("Item").getAsString();
 
-        // Find original row
+        // Lookup the itemId using itemName from the file named items.txt
         String itemId = JsonStorageHelper.lookupValueByLabel("items.txt", "itemName", "itemId", itemName);
         
 
-        JsonArray poList;
+        JsonArray itemList;
         try {
-            poList = JsonStorageHelper.loadAsJsonArray(filePath);
+            // Load the current list of items from filepath
+            itemList = JsonStorageHelper.loadAsJsonArray(filePath);
         } catch (IOException e) {
             JOptionPane.showMessageDialog(null, "Failed to load Items file.");
             return;
         }
 
+        // Iterate through the loaded list to find the original record using itemId
         JsonObject original = null;
-        for (JsonElement el : poList) {
+        for (JsonElement el : itemList) {
             JsonObject obj = el.getAsJsonObject();
             String id = obj.get("itemId").getAsString();
             originalDataMap.put(id, obj);
+
+            // If itemId matches, mark it as the original record
             original = obj;
         }
 
+        // If no matching original record was found, show an error
         if (original == null) {
             JOptionPane.showMessageDialog(null, "Original record not found.");
             return;
         }
 
         Map<String, FieldDefinition> fieldDefs = new LinkedHashMap<>();
+        // Field for Item Name
         fieldDefs.put("itemId", FieldDefinition
             .dropdown("items.txt", "itemName", "itemId")
             .withLabel("Item")
             .withKey("itemId")
             .required());
 
+        // Field for Stock Level
         fieldDefs.put("Stock Level", FieldDefinition
             .of("int")
             .withLabel("Stock Level")
             .withKey("stockLevel")
             .required());
 
+        // Field for Selling Price
         fieldDefs.put("Selling Price", FieldDefinition
             .of("int")
             .withLabel("Selling Price")
             .withKey("sellingPrice")
             .required());
 
+        // Set up the edit context with original and editable data
         EditDialogContext context = new EditDialogContext();
         context.originalData = original.deepCopy();
         context.editedData = new JsonObject();
+
+        // Pre-fill the editable fields with original data
         context.editedData.addProperty("itemId", itemId);
         context.editedData.addProperty("Stock Level", original.get("stockLevel").getAsString());
         context.editedData.addProperty("Selling Price", original.get("sellingPrice").getAsString());
@@ -98,20 +110,40 @@ public class itemsTableHandler implements TableActionHandler{
             updatedData.addProperty("itemId", itemIdString);
 
             try {
+                // Update the items.txt file with the new data
                 JsonStorageHelper.updateOrInsert("items.txt", updatedData, "itemId");
 
+                // Reload updated data and refresh the UI table
                 JsonArray updatedList = JsonStorageHelper.loadAsJsonArray("items.txt");
                 page.refreshTableData(convert(updatedList));
             } catch (IOException e) {
                 JOptionPane.showMessageDialog(null, "Failed to update Items record.");
                 e.printStackTrace();
             }
-        }, fieldDefs, context).setVisible(true);
+        }, fieldDefs, context).setVisible(true); // Show the dialog
     }
 
     @Override
     public void onDelete(JsonObject rowData, String pointerKeyPath){
-        throw new UnsupportedOperationException("onDelete unused");
+        // Extract the value of the itemId from the row that is being deleted
+        String keyVal = rowData.get("itemId").getAsString();
+        // Call helper method to remove the item from the JSON file based on itemId
+        deleteRowFromJson(keyVal, pointerKeyPath);
+        System.out.println("Deleted item.");
+        page.refreshTableData(getLatestData());
+    }
+
+    // Method to load latest data from items.txt and return it as JsonArray
+    private JsonArray getLatestData(){
+        String jsonFilePath = "items.txt";
+        JsonArray root = null;
+        try {
+            // Load the entire file as a JsonArray
+            root = JsonStorageHelper.loadAsJsonArray(jsonFilePath);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return root;// Return the loaded data
     }
 
     public static JsonArray convert(JsonArray rawArray){
@@ -157,4 +189,39 @@ public class itemsTableHandler implements TableActionHandler{
         }
         return "Unknown";
     }
+
+    // Delete a row from a JSON array using keyValue
+    private void deleteRowFromJson(String keyValue, String pointerKeyPath) {
+        try {
+            JsonArray arr = getLatestData(); // e.g., your array of items
+
+            for (int i = 0; i < arr.size(); i++) {
+                JsonObject obj = arr.get(i).getAsJsonObject();
+
+                // Retrieve the value of the field based on the pointerKeyPath
+                JsonElement element = obj.get(pointerKeyPath);
+                if (element == null) continue;
+
+                String value = element.getAsString();
+                if (value.equals(keyValue)) {
+                    arr.remove(i); // Remove the object at index i
+
+                    // Log the file path and the updated content
+                    System.out.println("Deleting item with " + pointerKeyPath + " = " + keyValue);
+                    System.out.println("Saving changes to file: " + "items.txt");
+
+                    JsonStorageHelper.saveToJson("items.txt", arr); // Save updated data
+
+                    System.out.println("Data successfully saved to " + "items.txt");
+                    // JsonStorageHelper.saveToJson(filePath, arr); // Save updated array back into the file
+                    break;
+                }
+            }
+
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(currentPage, "Failed to delete row from JSON.");
+            e.printStackTrace();
+        }
+    }
+
 }

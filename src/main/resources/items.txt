@@ -17,5 +17,17 @@
     "itemName": "Monitor",
     "stockLevel": "15",
     "sellingPrice": "799.99"
+  },
+  {
+    "itemId": 304,
+    "itemName": "Monitor",
+    "stockLevel": "13",
+    "sellingPrice": "799.99"
+  },
+  {
+    "itemId": 305,
+    "itemName": "Keyboard",
+    "stockLevel": "15",
+    "sellingPrice": "799.99"
   }
 ]
