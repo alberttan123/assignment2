@@ -86,15 +86,25 @@ public class JsonStorageHelper {
     public static void updateOrInsert(String filePath, JsonObject updatedData, String matchingIdField) throws IOException {
         JsonArray array = loadAsJsonArray(filePath);
         boolean updated = false;
-
+        
         for (int i = 0; i < array.size(); i++) {
             JsonObject obj = array.get(i).getAsJsonObject();
-            if (obj.has(matchingIdField) && obj.get(matchingIdField).getAsString().equals(updatedData.get(matchingIdField).getAsString())) {
-                for (Map.Entry<String, JsonElement> entry : updatedData.entrySet()) {
-                    obj.add(entry.getKey(), entry.getValue());
+            try{
+                if (obj.has(matchingIdField) && obj.get(matchingIdField).getAsString().equals(updatedData.get(matchingIdField).getAsString())) {
+                    for (Map.Entry<String, JsonElement> entry : updatedData.entrySet()) {
+                        obj.add(entry.getKey(), entry.getValue());
+                    }
+                    updated = true;
+                    break;
                 }
-                updated = true;
-                break;
+            }catch (NullPointerException e){
+                if (obj.has(matchingIdField) && obj.get(matchingIdField).getAsInt() == updatedData.get(matchingIdField).getAsInt()) {
+                    for (Map.Entry<String, JsonElement> entry : updatedData.entrySet()) {
+                        obj.add(entry.getKey(), entry.getValue());
+                    }
+                    updated = true;
+                    break;
+                }
             }
         }
 
