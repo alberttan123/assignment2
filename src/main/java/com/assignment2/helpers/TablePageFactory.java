@@ -6,7 +6,8 @@ import com.assignment2.gui_albert.TablePage;
 import com.assignment2.service.UserTableHandler;
 import com.assignment2.service.itemsTableHandler;
 import com.assignment2.service.poTableHandler;
-import com.assignment2.service.supplierTableHandler;
+import com.assignment2.service.SupplierItemsTableHandler;
+import com.assignment2.service.SupplierTableHandler;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -175,7 +176,7 @@ public class TablePageFactory {
             String filePath = "Supplier.txt";
             JsonArray arr = JsonStorageHelper.loadAsJsonArray(filePath);
             // itemsTableHandler.setIsApprove(false);
-            JsonArray convertedArray = supplierTableHandler.convert(arr);
+            JsonArray convertedArray = SupplierTableHandler.convert(arr);
             String[] excluded = {};
             List<String> columnOrder = List.of();
 
@@ -188,13 +189,40 @@ public class TablePageFactory {
 
             tablePage = new TablePage("Suppliers", true, true, true, excluded, combined, columnOrder, pointerKeyPath, convertedArray, false);
 
-            tablePage.setTableActionHandler(new supplierTableHandler(tablePage, tablePage));
+            tablePage.setTableActionHandler(new SupplierTableHandler(tablePage, tablePage));
         }catch(IOException e){
             e.printStackTrace();
             System.out.println("Supplier.txt not found.");
         }
         return tablePage;
-    }    
+    }
+    
+    public static TablePage createSupplierItemsTable() {
+        TablePage tablePage = null;
+        try{
+            String filePath = "supplier_items.txt";
+            JsonArray arr = JsonStorageHelper.loadAsJsonArray(filePath);
+            // itemsTableHandler.setIsApprove(false);
+            JsonArray convertedArray = SupplierItemsTableHandler.convert(arr);
+            String[] excluded = {};
+            List<String> columnOrder = List.of();
+
+            // Combined columns
+            Map<String, String> combined = new HashMap<>();
+            // combined.put("Full Name", "name.fname name.lname");
+            // combined.put("Birthdate", "dob.day dob.month dob.year");
+
+            String pointerKeyPath = "supplierId";
+
+            tablePage = new TablePage("Supplier Items", true, true, true, excluded, combined, columnOrder, pointerKeyPath, convertedArray, false);
+
+            tablePage.setTableActionHandler(new SupplierItemsTableHandler(tablePage, tablePage));
+        }catch(IOException e){
+            e.printStackTrace();
+            System.out.println("supplier_items.txt not found.");
+        }
+        return tablePage;
+    }   
 
     public static TablePage createViewItemsTable() {
         TablePage tablePage = null;

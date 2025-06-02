@@ -18,13 +18,13 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-public class supplierTableHandler implements TableActionHandler{
+public class SupplierTableHandler implements TableActionHandler{
     private JFrame currentPage;
     private TablePage page;
     private String filePath = "Supplier.txt";
     private Map<String, JsonObject> originalDataMap = new LinkedHashMap<>();
 
-    public supplierTableHandler(JFrame currentPage, TablePage page) {
+    public SupplierTableHandler(JFrame currentPage, TablePage page) {
         this.currentPage = currentPage;
         this.page = page;
     }
