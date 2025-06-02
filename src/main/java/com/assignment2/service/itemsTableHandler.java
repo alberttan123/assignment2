@@ -156,10 +156,10 @@ public class itemsTableHandler implements TableActionHandler{
             System.out.println(original);
 
             // Lookup and add item details based on itemId
-            converted.addProperty("itemId", original.get("itemId").getAsInt());
+            converted.addProperty("Item Id", original.get("itemId").getAsInt());
             converted.addProperty("Item", getNameById("items.txt", "itemId", original.get("itemId").getAsInt(), "itemName"));
-            converted.addProperty("stockLevel", getNameById("items.txt", "itemId", original.get("itemId").getAsInt(), "stockLevel"));
-            converted.addProperty("sellingPrice", getNameById("items.txt", "itemId", original.get("itemId").getAsInt(), "sellingPrice"));
+            converted.addProperty("Stock Level", getNameById("items.txt", "itemId", original.get("itemId").getAsInt(), "stockLevel"));
+            converted.addProperty("Selling Price", getNameById("items.txt", "itemId", original.get("itemId").getAsInt(), "sellingPrice"));
 
             // Add the converted object to the result array
             convertedArray.add(converted);
