@@ -48,10 +48,8 @@ public class itemsTableHandler implements TableActionHandler {
 
         Map<String, Object> fieldOptions = new HashMap<>();
 
-        
         String primaryKey = "itemId";
 
-        
         AddPage dialog = new AddPage(currentPage, filePath, fieldLabels, dataTypes, fieldOptions, primaryKey);
 
         // Refresh after dialog closes
