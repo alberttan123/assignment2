@@ -1,6 +1,24 @@
 package com.assignment2.service;
 
-public class SupplierItemsTableHandler extends TableActionHandler{
+import java.io.IOException;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+
+import com.assignment2.gui_albert.AccountFormPage;
+import com.assignment2.gui_albert.EditDialog;
+import com.assignment2.gui_albert.FieldDefinition;
+import com.assignment2.gui_albert.TablePage;
+import com.assignment2.helpers.EditDialogContext;
+import com.assignment2.helpers.JsonStorageHelper;
+import com.assignment2.session.SessionManager;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+
+public class SupplierItemsTableHandler implements TableActionHandler{
     private JFrame currentPage;
     private TablePage page;
     private String filePath = "supplier_items.txt";
@@ -16,6 +34,15 @@ public class SupplierItemsTableHandler extends TableActionHandler{
         throw new UnsupportedOperationException("onAdd unused");
     }
 
+    @Override
+    public void onEdit(JsonObject record){
+        throw new UnsupportedOperationException("onEdit unused");        
+    }
+
+    @Override
+    public void onDelete(JsonObject rowData, String pointerKeyPath){
+        throw new UnsupportedOperationException("onDelete unused");        
+    }    
 
 
 
