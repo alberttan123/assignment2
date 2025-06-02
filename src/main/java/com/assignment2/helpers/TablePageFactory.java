@@ -169,6 +169,33 @@ public class TablePageFactory {
         return tablePage;
     }
 
+    public static TablePage createSupplierTable() {
+        TablePage tablePage = null;
+        try{
+            String filePath = "Supplier.txt";
+            JsonArray arr = JsonStorageHelper.loadAsJsonArray(filePath);
+            // itemsTableHandler.setIsApprove(false);
+            JsonArray convertedArray = supplierTableHandler.convert(arr);
+            String[] excluded = {};
+            List<String> columnOrder = List.of();
+
+            // Combined columns
+            Map<String, String> combined = new HashMap<>();
+            // combined.put("Full Name", "name.fname name.lname");
+            // combined.put("Birthdate", "dob.day dob.month dob.year");
+
+            String pointerKeyPath = "supplierId";
+
+            tablePage = new TablePage("Suppliers", true, true, true, excluded, combined, columnOrder, pointerKeyPath, convertedArray, false);
+
+            tablePage.setTableActionHandler(new supplierTableHandler(tablePage, tablePage));
+        }catch(IOException e){
+            e.printStackTrace();
+            System.out.println("Supplier.txt not found.");
+        }
+        return tablePage;
+    }    
+
     public static TablePage createViewItemsTable() {
         TablePage tablePage = null;
         try{
