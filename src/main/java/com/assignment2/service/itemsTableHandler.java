@@ -48,10 +48,10 @@ public class itemsTableHandler implements TableActionHandler {
 
         Map<String, Object> fieldOptions = new HashMap<>();
 
-        // Generate next available itemId and inject into the JSON object
+        
         String primaryKey = "itemId";
 
-        // Pre-inject that ID into the form result on save
+        
         AddPage dialog = new AddPage(currentPage, filePath, fieldLabels, dataTypes, fieldOptions, primaryKey);
 
         // Refresh after dialog closes
