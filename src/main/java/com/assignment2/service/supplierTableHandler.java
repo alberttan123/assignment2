@@ -18,31 +18,30 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-public class itemsTableHandler implements TableActionHandler{
-
+public class SupplierTableHandler implements TableActionHandler{
     private JFrame currentPage;
     private TablePage page;
-    private String filePath = "items.txt";
+    private String filePath = "Supplier.txt";
     private Map<String, JsonObject> originalDataMap = new LinkedHashMap<>();
 
-    public itemsTableHandler(JFrame currentPage, TablePage page) {
+    public SupplierTableHandler(JFrame currentPage, TablePage page) {
         this.currentPage = currentPage;
         this.page = page;
     }
-    
+
     @Override
     public void onAdd(){
         System.out.println("Error boss");
         throw new UnsupportedOperationException("onAdd unused");
     }
-
+    
     @Override
     public void onEdit(JsonObject record){
-        // Extract the item name from the input JSON record
-        String itemName = record.get("Item").getAsString();
+        // Extract the item name from the input JSON record (table header name)
+        String supplierName = record.get("Supplier").getAsString();
 
         // Lookup the itemId using itemName from the file named items.txt
-        String itemId = JsonStorageHelper.lookupValueByLabel("items.txt", "itemName", "itemId", itemName);
+        String supplierId = JsonStorageHelper.lookupValueByLabel("Supplier.txt", "name", "supplierId", supplierName);
         
 
         JsonArray itemList;
@@ -50,18 +49,18 @@ public class itemsTableHandler implements TableActionHandler{
             // Load the current list of items from filepath
             itemList = JsonStorageHelper.loadAsJsonArray(filePath);
         } catch (IOException e) {
-            JOptionPane.showMessageDialog(null, "Failed to load Items file.");
+            JOptionPane.showMessageDialog(null, "Failed to load Supplier file.");
             return;
         }
 
-        // Iterate through the loaded list to find the original record using itemId
+        // Iterate through the loaded list to find the original record using suupplierId
         JsonObject original = null;
         for (JsonElement el : itemList) {
             JsonObject obj = el.getAsJsonObject();
-            String id = obj.get("itemId").getAsString();
+            String id = obj.get("supplierId").getAsString();
             originalDataMap.put(id, obj);
 
-            // If itemId matches, mark it as the original record
+            // If supplierId matches, mark it as the original record
             original = obj;
         }
 
@@ -72,25 +71,18 @@ public class itemsTableHandler implements TableActionHandler{
         }
 
         Map<String, FieldDefinition> fieldDefs = new LinkedHashMap<>();
-        // Field for Item Name
-        fieldDefs.put("itemId", FieldDefinition
-            .dropdown("items.txt", "itemName", "itemId")
-            .withLabel("Item")
-            .withKey("itemId")
+        // Field for Supplier Name
+        fieldDefs.put("supplierId", FieldDefinition
+            .dropdown("Supplier.txt", "name", "supplierId")
+            .withLabel("Supplier Name")
+            .withKey("supplierId")
             .required());
 
-        // Field for Stock Level
-        fieldDefs.put("Stock Level", FieldDefinition
-            .of("int")
-            .withLabel("Stock Level")
-            .withKey("stockLevel")
-            .required());
-
-        // Field for Selling Price
-        fieldDefs.put("Selling Price", FieldDefinition
-            .of("int")
-            .withLabel("Selling Price")
-            .withKey("sellingPrice")
+        // Field for Address
+        fieldDefs.put("Address", FieldDefinition
+            .of("String")
+            .withLabel("Supplier Address")
+            .withKey("address")
             .required());
 
         // Set up the edit context with original and editable data
@@ -99,25 +91,24 @@ public class itemsTableHandler implements TableActionHandler{
         context.editedData = new JsonObject();
 
         // Pre-fill the editable fields with original data
-        context.editedData.addProperty("itemId", itemId);
-        context.editedData.addProperty("Stock Level", original.get("stockLevel").getAsString());
-        context.editedData.addProperty("Selling Price", original.get("sellingPrice").getAsString());
-        context.tableName = "items";
+        context.editedData.addProperty("supplierId", supplierId);
+        context.editedData.addProperty("Address", original.get("address").getAsString());
+        context.tableName = "supplier_name";
 
         new EditDialog(null, updatedData -> {
-            // Ensure poId is preserved from the original data
-            String itemIdString = context.originalData.get("itemId").getAsString();
-            updatedData.addProperty("itemId", itemIdString);
+            // Ensure supplierId is preserved from the original data
+            String itemIdString = context.originalData.get("supplierId").getAsString();
+            updatedData.addProperty("supplierID", itemIdString);
 
             try {
-                // Update the items.txt file with the new data
-                JsonStorageHelper.updateOrInsert("items.txt", updatedData, "itemId");
+                // Update the Supplier.txt file with the new data
+                JsonStorageHelper.updateOrInsert("Supplier.txt", updatedData, "supplierId");
 
                 // Reload updated data and refresh the UI table
-                JsonArray updatedList = JsonStorageHelper.loadAsJsonArray("items.txt");
+                JsonArray updatedList = JsonStorageHelper.loadAsJsonArray("Supplier.txt");
                 page.refreshTableData(convert(updatedList));
             } catch (IOException e) {
-                JOptionPane.showMessageDialog(null, "Failed to update Items record.");
+                JOptionPane.showMessageDialog(null, "Failed to update Supplier record.");
                 e.printStackTrace();
             }
         }, fieldDefs, context).setVisible(true); // Show the dialog
@@ -125,9 +116,9 @@ public class itemsTableHandler implements TableActionHandler{
 
     @Override
     public void onDelete(JsonObject rowData, String pointerKeyPath){
-        // Extract the value of the itemId from the row that is being deleted
-        String keyVal = rowData.get("itemId").getAsString();
-        // Call helper method to remove the item from the JSON file based on itemId
+        // Extract the value of the supplierId from the row that is being deleted
+        String keyVal = rowData.get("supplierId").getAsString();
+        // Call helper method to remove the supplier from the JSON file based on supplierId
         deleteRowFromJson(keyVal, pointerKeyPath);
         System.out.println("Deleted item.");
         page.refreshTableData(getLatestData());
@@ -135,7 +126,7 @@ public class itemsTableHandler implements TableActionHandler{
 
     // Method to load latest data from items.txt and return it as JsonArray
     private JsonArray getLatestData(){
-        String jsonFilePath = "items.txt";
+        String jsonFilePath = "Supplier.txt";
         JsonArray root = null;
         try {
             // Load the entire file as a JsonArray
@@ -156,17 +147,16 @@ public class itemsTableHandler implements TableActionHandler{
             System.out.println(original);
 
             // Lookup and add item details based on itemId
-            converted.addProperty("Item Id", original.get("itemId").getAsInt());
-            converted.addProperty("Item", getNameById("items.txt", "itemId", original.get("itemId").getAsInt(), "itemName"));
-            converted.addProperty("Stock Level", getNameById("items.txt", "itemId", original.get("itemId").getAsInt(), "stockLevel"));
-            converted.addProperty("Selling Price", getNameById("items.txt", "itemId", original.get("itemId").getAsInt(), "sellingPrice"));
+            converted.addProperty("supplierId", original.get("supplierId").getAsInt());
+            converted.addProperty("Supplier", getNameById("Supplier.txt", "supplierId", original.get("supplierId").getAsInt(), "name"));
+            converted.addProperty("Address", getNameById("Supplier.txt", "supplierId", original.get("supplierId").getAsInt(), "address"));
 
             // Add the converted object to the result array
             convertedArray.add(converted);
         }
         return convertedArray;
-    }
-
+    }   
+        
     // Method to get the name by the Id
     private static String getNameById(String filePath, String idKey, int targetId, String nameKey) {
         try {
@@ -189,7 +179,7 @@ public class itemsTableHandler implements TableActionHandler{
         }
         return "Unknown";
     }
-
+    
     // Delete a row from a JSON array using keyValue
     private void deleteRowFromJson(String keyValue, String pointerKeyPath) {
         try {
@@ -208,11 +198,11 @@ public class itemsTableHandler implements TableActionHandler{
 
                     // Log the file path and the updated content
                     System.out.println("Deleting item with " + pointerKeyPath + " = " + keyValue);
-                    System.out.println("Saving changes to file: " + "items.txt");
+                    System.out.println("Saving changes to file: " + "Supplier.txt");
 
-                    JsonStorageHelper.saveToJson("items.txt", arr); // Save updated data
+                    JsonStorageHelper.saveToJson("Supplier.txt", arr); // Save updated data
 
-                    System.out.println("Data successfully saved to " + "items.txt");
+                    System.out.println("Data successfully saved to " + "Supplier.txt");
                     // JsonStorageHelper.saveToJson(filePath, arr); // Save updated array back into the file
                     break;
                 }

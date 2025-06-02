@@ -3,9 +3,12 @@ package com.assignment2.helpers;
 
 import com.assignment2.gui_albert.FieldDefinition;
 import com.assignment2.gui_albert.TablePage;
+import com.assignment2.gui_xiang.UpdateStockFromApprovedPOs;
 import com.assignment2.service.UserTableHandler;
 import com.assignment2.service.itemsTableHandler;
 import com.assignment2.service.poTableHandler;
+import com.assignment2.service.SupplierItemsTableHandler;
+import com.assignment2.service.SupplierTableHandler;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -74,6 +77,35 @@ public class TablePageFactory {
             String pointerKeyPath = null;
 
             tablePage = new TablePage("Purchase Orders", true, false, false, excluded, combined, columnOrder, pointerKeyPath, convertedArray, true);
+
+            tablePage.setTableActionHandler(new poTableHandler(tablePage, false));
+            tablePage.setTableActionAdapter(new poTableHandler(tablePage, false));
+        }catch(IOException e){
+            e.printStackTrace();
+            System.out.println("PurchaseOrder.txt not found.");
+        }
+        return tablePage;
+    }
+
+    public static TablePage createPOTablePurchaseManager() {
+        TablePage tablePage = null;
+        try{
+            String filePath = "PurchaseOrder.txt";
+
+            JsonArray arr = JsonStorageHelper.loadAsJsonArray(filePath);
+            poTableHandler.setIsApprove(false);
+            JsonArray convertedArray = poTableHandler.convert(arr);
+            String[] excluded = {};
+            List<String> columnOrder = List.of();
+
+            // Combined columns
+            Map<String, String> combined = new HashMap<>();
+            // combined.put("Full Name", "name.fname name.lname");
+            // combined.put("Birthdate", "dob.day dob.month dob.year");
+
+            String pointerKeyPath = null;
+
+            tablePage = new TablePage("Purchase Orders", true, false, true, excluded, combined, columnOrder, pointerKeyPath, convertedArray, false);
 
             tablePage.setTableActionHandler(new poTableHandler(tablePage, false));
             tablePage.setTableActionAdapter(new poTableHandler(tablePage, false));
@@ -156,7 +188,7 @@ public class TablePageFactory {
             // combined.put("Full Name", "name.fname name.lname");
             // combined.put("Birthdate", "dob.day dob.month dob.year");
 
-            String pointerKeyPath = null;
+            String pointerKeyPath = "itemId";
 
             tablePage = new TablePage("Items", true, true, true, excluded, combined, columnOrder, pointerKeyPath, convertedArray, false);
 
@@ -167,6 +199,60 @@ public class TablePageFactory {
         }
         return tablePage;
     }
+
+    public static TablePage createSupplierTable() {
+        TablePage tablePage = null;
+        try{
+            String filePath = "Supplier.txt";
+            JsonArray arr = JsonStorageHelper.loadAsJsonArray(filePath);
+            // itemsTableHandler.setIsApprove(false);
+            JsonArray convertedArray = SupplierTableHandler.convert(arr);
+            String[] excluded = {};
+            List<String> columnOrder = List.of();
+
+            // Combined columns
+            Map<String, String> combined = new HashMap<>();
+            // combined.put("Full Name", "name.fname name.lname");
+            // combined.put("Birthdate", "dob.day dob.month dob.year");
+
+            String pointerKeyPath = "supplierId";
+
+            tablePage = new TablePage("Suppliers", true, true, true, excluded, combined, columnOrder, pointerKeyPath, convertedArray, false);
+
+            tablePage.setTableActionHandler(new SupplierTableHandler(tablePage, tablePage));
+        }catch(IOException e){
+            e.printStackTrace();
+            System.out.println("Supplier.txt not found.");
+        }
+        return tablePage;
+    }
+    
+    public static TablePage createSupplierItemsTable() {
+        TablePage tablePage = null;
+        try{
+            String filePath = "supplier_items.txt";
+            JsonArray arr = JsonStorageHelper.loadAsJsonArray(filePath);
+            // itemsTableHandler.setIsApprove(false);
+            JsonArray convertedArray = SupplierItemsTableHandler.convert(arr);
+            String[] excluded = {};
+            List<String> columnOrder = List.of();
+
+            // Combined columns
+            Map<String, String> combined = new HashMap<>();
+            // combined.put("Full Name", "name.fname name.lname");
+            // combined.put("Birthdate", "dob.day dob.month dob.year");
+
+            String pointerKeyPath = "supplierId";
+
+            tablePage = new TablePage("Supplier Items", true, true, true, excluded, combined, columnOrder, pointerKeyPath, convertedArray, false);
+
+            tablePage.setTableActionHandler(new SupplierItemsTableHandler(tablePage, tablePage));
+        }catch(IOException e){
+            e.printStackTrace();
+            System.out.println("supplier_items.txt not found.");
+        }
+        return tablePage;
+    }   
 
     public static TablePage createViewItemsTable() {
         TablePage tablePage = null;
@@ -243,6 +329,49 @@ public class TablePageFactory {
         SwingUtilities.invokeLater(() -> applyButton.doClick());
 
         tablePage.addToTop(new JLabel(" Show items with stock < "), thresholdField, applyButton);
+        return tablePage;
+    }
+
+    public static TablePage createUpdateStockTable() {
+        JsonArray arr;
+
+        // Try loading items.txt
+        try {
+            arr = JsonStorageHelper.loadAsJsonArray("items.txt");
+        } catch (IOException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "items.txt not found.");
+            arr = new JsonArray(); // fallback to empty array
+        }
+
+        final JsonArray items = arr; // final copy for lambda use
+
+        JsonArray convertedArray = itemsTableHandler.convert(items);
+        String[] excluded = {};
+        List<String> columnOrder = List.of();
+        Map<String, String> combined = new HashMap<>();
+        String pointerKeyPath = null;
+
+        final TablePage tablePage = new TablePage("Items", false, false, false, excluded, combined, columnOrder, pointerKeyPath, convertedArray, false);
+        tablePage.setTableActionHandler(new itemsTableHandler(tablePage, tablePage));
+
+        // Create Update Stock Button
+        JButton updateStockButton = new JButton("Update Stock from Approved POs");
+        updateStockButton.addActionListener(e -> {
+            UpdateStockFromApprovedPOs.updateStockFromApprovedPOs(tablePage);
+
+            // Reload and filter items after stock update
+            try {
+                JsonArray updatedItems = JsonStorageHelper.loadAsJsonArray("items.txt");
+                tablePage.refreshTableData(itemsTableHandler.convert(updatedItems));
+
+            } catch (IOException ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(tablePage, "Failed to reload items after stock update.");
+            }
+        });
+
+        tablePage.addToTop(updateStockButton);
         return tablePage;
     }
 }

@@ -8,7 +8,6 @@ import java.util.function.Supplier;
 
 import com.assignment2.gui_albert.HomePage;
 import com.assignment2.gui_albert.TablePage;
-import com.assignment2.gui_xiang.LowStockTablePage;
 
 public class FunctionButtonFactory {
 
@@ -36,6 +35,20 @@ public class FunctionButtonFactory {
 
         actions.put("manage_suppliers", () -> {
             System.out.println("Opening Supplier Management Window...");
+            if (currentWindow != null) currentWindow.dispose();
+
+            TablePage poTable = TablePageFactory.createSupplierTable();
+            if (poTable != null) {
+                poTable.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                poTable.addWindowListener(new java.awt.event.WindowAdapter() {
+                    @Override
+                    public void windowClosed(java.awt.event.WindowEvent e) {
+                        System.out.println("Returning to Home Page...");
+                        new com.assignment2.gui_albert.HomePage().setVisible(true);
+                    }
+                });
+                poTable.setVisible(true);
+            }
         });
 
         actions.put("enter_daily_sales", () -> {
@@ -54,7 +67,7 @@ public class FunctionButtonFactory {
             System.out.println("Showing PO List...");
             if (currentWindow != null) currentWindow.dispose();
 
-            TablePage poTable = TablePageFactory.createViewPOTable();
+            TablePage poTable = TablePageFactory.createPOTablePurchaseManager();
             if (poTable != null) {
                 poTable.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
                 poTable.addWindowListener(new java.awt.event.WindowAdapter() {
@@ -88,6 +101,20 @@ public class FunctionButtonFactory {
 
         actions.put("update_stock_from_po", () -> {
             System.out.println("Updating Stock from PO...");
+            if (currentWindow != null) currentWindow.dispose();
+
+            TablePage poTable = TablePageFactory.createUpdateStockTable();
+            if (poTable != null) {
+                poTable.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                poTable.addWindowListener(new java.awt.event.WindowAdapter() {
+                    @Override
+                    public void windowClosed(java.awt.event.WindowEvent e) {
+                        System.out.println("Returning to Home Page...");
+                        new com.assignment2.gui_albert.HomePage().setVisible(true);
+                    }
+                });
+                poTable.setVisible(true);
+            }
         });
 
         actions.put("generate_stock_reports", () -> {
@@ -132,14 +159,6 @@ public class FunctionButtonFactory {
 
         actions.put("view_items_suppliers", () -> {
             System.out.println("Viewing Items and Suppliers...");
-        });
-
-        actions.put("generate_po", () -> {
-            System.out.println("Generating Purchase Order...");
-        });
-
-        actions.put("edit_po", () -> {
-            System.out.println("Editing Purchase Order...");
         });
 
         actions.put("process_payments", () -> {

@@ -26,8 +26,6 @@ public class RoleAccessControl {
         roleAccessMap.put("purchase_manager", new HashSet<>(Arrays.asList(
                 "view_items_suppliers",
                 "view_prs",
-                "generate_po",
-                "edit_po",
                 "view_po_list"
         )));
 
