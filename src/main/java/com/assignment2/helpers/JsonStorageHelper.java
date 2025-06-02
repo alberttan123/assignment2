@@ -15,6 +15,7 @@ public class JsonStorageHelper {
 
     static {
         try {
+            System.out.println("Working dir: " + System.getProperty("user.dir"));
             Files.createDirectories(DATA_DIRECTORY);
         } catch (IOException e) {
             throw new RuntimeException("Failed to create data directory", e);
