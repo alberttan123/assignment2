@@ -17,7 +17,7 @@ public class UserTableHandler implements TableActionHandler {
 
     private JFrame currentPage;
     private TablePage page;
-    private String jsonFilePath = "/data/users.txt";
+    private String jsonFilePath = "data/users.txt";
 
     public UserTableHandler(JFrame currentPage, TablePage page) {
         this.currentPage = currentPage;
@@ -52,7 +52,7 @@ public class UserTableHandler implements TableActionHandler {
     }
 
     private JsonArray getLatestData(){
-        String jsonFilePath = "/data/users.txt";
+        String jsonFilePath = "data/users.txt";
         JsonObject root = null;
         try {
             root = JsonStorageHelper.loadAsJsonObject(jsonFilePath);

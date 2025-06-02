@@ -15,7 +15,7 @@ public class LoginService {
 
             for (int i = 0; i < users.size(); i++) {
                 JsonObject user = users.get(i).getAsJsonObject();
-                if (user.get("email").getAsString().equals(email) && user.get("password").getAsString().isEmpty()){
+                if (user.get("email").getAsString().equals(email) && !user.has("password")){
                     return 2; //new account - opens first time login modal
                 }
                 if (user.get("email").getAsString().equals(email) &&

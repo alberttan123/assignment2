@@ -35,7 +35,7 @@ public class TablePageFactory {
     public static TablePage createUserTable() {
         TablePage tablePage = null;
         try{
-            String filePath = "/data/users.txt";
+            String filePath = "data/users.txt";
             JsonObject root = JsonStorageHelper.loadAsJsonObject(filePath);
             JsonArray arr = root.getAsJsonArray("users");
             String[] excluded = { "name.fname", "name.lname", "dob.day", "dob.month", "dob.year", "profilePicturePath", "password"};
@@ -139,7 +139,7 @@ public class TablePageFactory {
             tablePage.setTableActionAdapter(new poTableHandler(tablePage, true));
         }catch(IOException e){
             e.printStackTrace();
-            System.out.println("/PurchaseOrder.txt not found.");
+            System.out.println("PurchaseOrder.txt not found.");
         }
         return tablePage;
     }
