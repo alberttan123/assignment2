@@ -2,6 +2,7 @@ package com.assignment2.helpers;
 
 import com.google.gson.*;
 import java.io.*;
+import java.net.URI;
 import java.net.URL;
 import java.nio.file.*;
 import java.time.LocalDateTime;
@@ -10,17 +11,20 @@ import java.util.Map;
 import java.util.function.Predicate;
 
 public class JsonStorageHelper {
-    private static final Path PROJECT_BASE = Paths.get(System.getProperty("user.dir"));
-    public static final Path DATA_DIR = PROJECT_BASE.resolve("data");
-    private static final Gson gson = new Gson();
+    private static final Path PROJECT_BASE;
 
     static {
         try {
-            Files.createDirectories(DATA_DIR);
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to create data directory", e);
+            // Get the actual path of the JAR or class files
+            URI baseUri = JsonStorageHelper.class.getProtectionDomain().getCodeSource().getLocation().toURI();
+            PROJECT_BASE = Paths.get(baseUri).getParent();  // this should point to /target or project root
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to resolve project base directory", e);
         }
     }
+
+    private static final Path DATA_DIR = PROJECT_BASE.resolve("data");
+
 
     // ---------- Unified path resolution ----------
     private static Reader resolveReader(String fileName) throws IOException {
