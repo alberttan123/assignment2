@@ -122,7 +122,8 @@ public class SupplierTableHandler implements TableActionHandler{
         new EditDialog(null, updatedData -> {
             // Ensure supplierId is preserved from the original data
             String supplierIdString = context.originalData.get("supplierId").getAsString();
-            updatedData.addProperty("supplierID", supplierIdString);
+            int supplierIdInt = Integer.parseInt(supplierIdString);
+            updatedData.addProperty("supplierID", supplierIdInt);
 
             try {
                 // Update the Supplier.txt file with the new data
