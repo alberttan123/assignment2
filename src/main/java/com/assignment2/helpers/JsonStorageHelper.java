@@ -10,22 +10,32 @@ import java.util.Map;
 import java.util.function.Predicate;
 
 public class JsonStorageHelper {
+    private static final Path DATA_DIRECTORY = Paths.get("data"); // or Paths.get(System.getProperty("user.dir"), "data");
     private static final Gson gson = new Gson();
 
+    static {
+        try {
+            Files.createDirectories(DATA_DIRECTORY);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to create data directory", e);
+        }
+    }
+
     // ---------- Unified path resolution ----------
-    private static Reader resolveReader(String filePath) throws IOException {
-        Path path = Path.of(filePath);
-        if (Files.exists(path)) {
-            return Files.newBufferedReader(path);
+    private static Reader resolveReader(String fileName) throws IOException {
+        Path filePath = DATA_DIRECTORY.resolve(fileName);
+
+        if (Files.exists(filePath)) {
+            return Files.newBufferedReader(filePath);
         }
 
-        // Fallback to classpath
-        InputStream stream = JsonStorageHelper.class.getClassLoader().getResourceAsStream(filePath);
+        // Optional fallback: load from resources for read-only use
+        InputStream stream = JsonStorageHelper.class.getClassLoader().getResourceAsStream("data/" + fileName);
         if (stream != null) {
             return new InputStreamReader(stream);
         }
 
-        throw new FileNotFoundException("File not found in filesystem or classpath: " + filePath);
+        throw new FileNotFoundException("File not found: " + filePath.toAbsolutePath());
     }
 
     // ---------- General JSON loading ----------
@@ -47,8 +57,8 @@ public class JsonStorageHelper {
         }
     }
 
-    public static void saveToJson(String path, Object data) throws IOException {
-        Path target = Path.of(path);
+    public static void saveToJson(String fileName, Object data) throws IOException {
+        Path target = DATA_DIRECTORY.resolve(fileName);
         if (target.getParent() != null) {
             Files.createDirectories(target.getParent());
         }
