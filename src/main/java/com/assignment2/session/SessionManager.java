@@ -9,6 +9,7 @@ import java.nio.file.Paths;
 
 import javax.swing.ImageIcon;
 
+import com.assignment2.helpers.JsonStorageHelper;
 import com.google.gson.JsonObject;
 
 public class SessionManager {
@@ -91,8 +92,8 @@ public class SessionManager {
             return null;
         }
 
-        // Prefer reading from file system (e.g., data/pfps/user123.png)
-        Path imagePath = Paths.get("data").resolve(profilePicturePath); // you can customize this root path
+        // Use same base path as JsonStorageHelper
+        Path imagePath = JsonStorageHelper.getDataPath(profilePicturePath);
 
         if (Files.exists(imagePath)) {
             try {
@@ -103,7 +104,7 @@ public class SessionManager {
             }
         }
 
-        // Fallback to classpath (in case it's bundled)
+        // Fallback to classpath resource
         URL imageUrl = SessionManager.class.getClassLoader().getResource("data/" + profilePicturePath);
         if (imageUrl != null) {
             ImageIcon icon = new ImageIcon(imageUrl);

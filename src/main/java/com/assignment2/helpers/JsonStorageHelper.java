@@ -32,6 +32,10 @@ public class JsonStorageHelper {
         System.out.println("Resolved data path: " + DATA_DIR.toAbsolutePath());
     }
 
+    public static Path getDataPath(String fileName) {
+        return DATA_DIR.resolve(fileName);
+    }
+
     // ---------- Unified path resolution ----------
     private static Reader resolveReader(String fileName) throws IOException {
         System.out.println("AHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH");
