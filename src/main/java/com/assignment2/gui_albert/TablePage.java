@@ -4,6 +4,7 @@ package com.assignment2.gui_albert;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.FlowLayout;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,6 +16,7 @@ import java.util.Set;
 import java.util.function.Function;
 
 import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -23,6 +25,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.RowFilter;
+import javax.swing.border.Border;
 import javax.swing.event.DocumentEvent;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
@@ -63,6 +66,10 @@ public class TablePage extends GUI {
     private JTextField searchField;
     private static List<String> columnOrder = new ArrayList<>();
     private boolean allowApproveReject;
+    private JPanel searchPanel;
+    private JPanel topPanel;         
+    private JPanel customTopPanel;   
+
     
     private Map<String, String> combinedColumns = new LinkedHashMap<>();
     private Map<String, Function<JsonObject, String>> customFormatters = new HashMap<>();
@@ -118,33 +125,58 @@ public class TablePage extends GUI {
         tableModel.setDataVector(tableData, extractedHeaders);
     }
 
+    public void addToTop(Component... components) {
+        if (customTopPanel != null) {
+            for (Component extra : components) {
+                customTopPanel.add(extra);
+            }
+            customTopPanel.setVisible(true);
+            customTopPanel.revalidate();
+            customTopPanel.repaint();
+        }
+    }
+
     @Override
     public void render() {
         JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        JPanel searchPanel = new JPanel(new BorderLayout());
+        // Top panel layout (vertical stacking of search + custom filters)
+        topPanel = new JPanel();
+        topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.Y_AXIS));
+
+        // Search bar row (horizontal)
+        searchPanel = new JPanel(new BorderLayout(10, 5));
         searchField = new JTextField();
         searchField.setToolTipText("Search...");
-        searchPanel.add(new JLabel(" Search: "), BorderLayout.WEST);
-        searchPanel.add(searchField, BorderLayout.CENTER);
-        mainPanel.add(searchPanel, BorderLayout.NORTH);
+        searchPanel.add(new JLabel("Search:"), BorderLayout.WEST);
+        searchPanel.add(searchField);
 
+        // Custom filter row (centered)
+        customTopPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
+        customTopPanel.setVisible(false); // shown only if something is injected
+
+        // Add rows to topPanel
+        topPanel.add(searchPanel);
+        topPanel.add(customTopPanel);
+
+        // Add topPanel to mainPanel
+        mainPanel.add(topPanel, BorderLayout.NORTH);
+
+        // Table setup
         extractedHeaders = extractHeadersWithFlattening(jsonData);
-
         Object[][] tableData = parseJsonArrayToTableData(jsonData, extractedHeaders);
 
         tableModel = new DefaultTableModel(tableData, extractedHeaders);
         table = new JTable(tableModel);
-        table.setDefaultEditor(Object.class, null); // stops double-click editing
+        table.setDefaultEditor(Object.class, null); // no inline editing
 
-        // Capitalize header labels (display only)
+        // Capitalize headers
         JTableHeader tableHeader = table.getTableHeader();
         TableColumnModel columnModel = table.getColumnModel();
         for (int i = 0; i < columnModel.getColumnCount(); i++) {
             String original = columnModel.getColumn(i).getHeaderValue().toString();
-            String capitalized = capitalizeWords(original);
-            columnModel.getColumn(i).setHeaderValue(capitalized);
+            columnModel.getColumn(i).setHeaderValue(capitalizeWords(original));
         }
         tableHeader.repaint();
 
@@ -154,6 +186,7 @@ public class TablePage extends GUI {
         JScrollPane scrollPane = new JScrollPane(table);
         mainPanel.add(scrollPane, BorderLayout.CENTER);
 
+        // Bottom action buttons
         JPanel buttonPanel = new JPanel();
         if (allowAdd) {
             addButton = new JButton("Add");
@@ -179,6 +212,8 @@ public class TablePage extends GUI {
         buttonPanel.add(exportButton);
 
         mainPanel.add(buttonPanel, BorderLayout.SOUTH);
+
+        // Finally add main panel
         add(mainPanel);
     }
 

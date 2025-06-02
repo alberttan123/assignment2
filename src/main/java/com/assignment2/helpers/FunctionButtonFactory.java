@@ -8,6 +8,7 @@ import java.util.function.Supplier;
 
 import com.assignment2.gui_albert.HomePage;
 import com.assignment2.gui_albert.TablePage;
+import com.assignment2.gui_xiang.LowStockTablePage;
 
 public class FunctionButtonFactory {
 
@@ -51,10 +52,38 @@ public class FunctionButtonFactory {
 
         actions.put("view_po_list", () -> {
             System.out.println("Showing PO List...");
+            if (currentWindow != null) currentWindow.dispose();
+
+            TablePage poTable = TablePageFactory.createViewPOTable();
+            if (poTable != null) {
+                poTable.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                poTable.addWindowListener(new java.awt.event.WindowAdapter() {
+                    @Override
+                    public void windowClosed(java.awt.event.WindowEvent e) {
+                        System.out.println("Returning to Home Page...");
+                        new com.assignment2.gui_albert.HomePage().setVisible(true);
+                    }
+                });
+                poTable.setVisible(true);
+            }
         });
 
         actions.put("view_items", () -> {
             System.out.println("Viewing Items...");
+            if (currentWindow != null) currentWindow.dispose();
+
+            TablePage poTable = TablePageFactory.createViewItemsTable();
+            if (poTable != null) {
+                poTable.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                poTable.addWindowListener(new java.awt.event.WindowAdapter() {
+                    @Override
+                    public void windowClosed(java.awt.event.WindowEvent e) {
+                        System.out.println("Returning to Home Page...");
+                        new com.assignment2.gui_albert.HomePage().setVisible(true);
+                    }
+                });
+                poTable.setVisible(true);
+            }
         });
 
         actions.put("update_stock_from_po", () -> {
@@ -67,10 +96,38 @@ public class FunctionButtonFactory {
 
         actions.put("track_low_stock_alerts", () -> {
             System.out.println("Tracking Low Stock Alerts...");
+            if (currentWindow != null) currentWindow.dispose();
+
+            TablePage poTable = TablePageFactory.createLowStockTable();
+            if (poTable != null) {
+                poTable.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                poTable.addWindowListener(new java.awt.event.WindowAdapter() {
+                    @Override
+                    public void windowClosed(java.awt.event.WindowEvent e) {
+                        System.out.println("Returning to Home Page...");
+                        new com.assignment2.gui_albert.HomePage().setVisible(true);
+                    }
+                });
+                poTable.setVisible(true);
+            }
         });
 
         actions.put("view_pos", () -> {
             System.out.println("Viewing Purchase Orders...");
+                        if (currentWindow != null) currentWindow.dispose();
+
+            TablePage poTable = TablePageFactory.createViewPOTable();
+            if (poTable != null) {
+                poTable.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                poTable.addWindowListener(new java.awt.event.WindowAdapter() {
+                    @Override
+                    public void windowClosed(java.awt.event.WindowEvent e) {
+                        System.out.println("Returning to Home Page...");
+                        new com.assignment2.gui_albert.HomePage().setVisible(true);
+                    }
+                });
+                poTable.setVisible(true);
+            }
         });
 
         actions.put("view_items_suppliers", () -> {

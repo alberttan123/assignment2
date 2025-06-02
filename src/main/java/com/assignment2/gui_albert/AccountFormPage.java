@@ -443,10 +443,10 @@ public class AccountFormPage extends GUI {
                     // Obfuscate email
                     String email = emailField.getText();
                     String obfuscated = obfuscateEmail(email);
-                    String outputPath = "/data/images/" + obfuscated + ".jpg";
+                    String outputPath = "data/images/" + obfuscated + ".jpg";
 
                     // Ensure directory exists
-                    File dir = new File("/data/images");
+                    File dir = new File("data/images");
                     if (!dir.exists()) dir.mkdirs();
 
                     // Convert Image to BufferedImage and write as JPEG
