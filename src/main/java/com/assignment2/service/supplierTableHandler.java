@@ -1,8 +1,10 @@
 package com.assignment2.service;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.swing.JFrame;
@@ -25,6 +27,7 @@ public class SupplierTableHandler implements TableActionHandler{
     private TablePage page;
     private String filePath = "Supplier.txt";
     private Map<String, JsonObject> originalDataMap = new LinkedHashMap<>();
+    private String supplierName;
 
     public SupplierTableHandler(JFrame currentPage, TablePage page) {
         this.currentPage = currentPage;
@@ -42,6 +45,10 @@ public class SupplierTableHandler implements TableActionHandler{
             "address", "string"
         );
 
+        // Get existing supplier names
+        List<String> existingNames = getExistingSupplierNames();// Not completed
+
+
         Map<String, Object> fieldOptions = new HashMap<>();
 
         
@@ -58,7 +65,7 @@ public class SupplierTableHandler implements TableActionHandler{
     @Override
     public void onEdit(JsonObject record){
         // Extract the item name from the input JSON record (table header name)
-        String supplierName = record.get("Supplier").getAsString();
+        supplierName = record.get("Supplier").getAsString();
 
         // Lookup the itemId using itemName from the file named items.txt
         String supplierId = JsonStorageHelper.lookupValueByLabel("Supplier.txt", "name", "supplierId", supplierName);
@@ -123,11 +130,10 @@ public class SupplierTableHandler implements TableActionHandler{
             // Ensure supplierId is preserved from the original data
             String supplierIdString = context.originalData.get("supplierId").getAsString();
             int supplierIdInt = Integer.parseInt(supplierIdString);
-            updatedData.addProperty("supplierID", supplierIdInt);
+            updatedData.addProperty("supplierId", supplierIdInt);
 
             try {
                 // Update the Supplier.txt file with the new data
-                System.out.println("Boom Bitch" + updatedData);
                 JsonStorageHelper.updateOrInsert("Supplier.txt", updatedData, "supplierId");
 
                 // Reload updated data and refresh the UI table
@@ -239,5 +245,16 @@ public class SupplierTableHandler implements TableActionHandler{
             e.printStackTrace();
         }
     }
+
+    // Method to extract supplier names from the current data
+    private List<String> getExistingSupplierNames() {
+        JsonArray currentData = getLatestData();
+        List<String> names = new ArrayList<>();
+        for (JsonElement element : currentData) {
+            JsonObject obj = element.getAsJsonObject();
+            names.add(obj.get("name").getAsString());
+        }
+        return names;
+    }    
 
 }
