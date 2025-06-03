@@ -1,10 +1,12 @@
 package com.assignment2.helpers;
 
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Dimension;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
+
+import javax.swing.JButton;
+import javax.swing.JFrame;
 
 import com.assignment2.gui_albert.HomePage;
 import com.assignment2.gui_albert.TablePage;
@@ -99,7 +101,7 @@ public class FunctionButtonFactory {
             System.out.println("Viewing Items...");
             if (currentWindow != null) currentWindow.dispose();
 
-            TablePage poTable = TablePageFactory.createViewItemsTable();
+            TablePage poTable = TablePageFactory.createInventoryItemsTable();
             if (poTable != null) {
                 poTable.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
                 poTable.addWindowListener(new java.awt.event.WindowAdapter() {
