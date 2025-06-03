@@ -174,8 +174,16 @@ private Map<String, Function<String, Boolean>> validationRules = new HashMap<>()
                 if (input instanceof JTextField) {
                     valueStr = ((JTextField) input).getText();
                     if ("price".equals(type)) {
-                        double priceVal = Double.parseDouble(valueStr);
-                        valueStr = String.format("%.2f", priceVal);
+                        if (!valueStr.isEmpty()) {
+                            try {
+                                double priceVal = Double.parseDouble(valueStr);
+                                valueStr = String.format("%.2f", priceVal);
+                            } catch (NumberFormatException e) {
+                                valueStr = "";
+                            }
+                        } else {
+                            valueStr = "";
+                        }
                     }
                 } else if (input instanceof JComboBox) {
                     @SuppressWarnings("unchecked")

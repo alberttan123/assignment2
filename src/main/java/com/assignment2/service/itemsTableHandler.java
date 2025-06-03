@@ -1,9 +1,12 @@
 package com.assignment2.service;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -48,9 +51,22 @@ public class itemsTableHandler implements TableActionHandler {
 
         Map<String, Object> fieldOptions = new HashMap<>();
 
+        Map<String, Function<String, Boolean>> validationRules = new HashMap<>();
+        List<String> existingValues = JsonStorageHelper.getListOf(filePath, "itemName");
+        for (int i = 0; i < existingValues.size(); i++) {
+            existingValues.set(i, existingValues.get(i).toLowerCase());
+        }
+        
+        validationRules.put("itemName", val -> {
+            try { return !val.trim().isEmpty() && !existingValues.contains(val.trim().toLowerCase()); } catch (Exception e) { return false; } // validate itemName is not empty and isn't already in file
+        });
+        validationRules.put("sellingPrice", val -> {
+            try { return !val.equals(""); } catch (Exception e) { return false; } // validate sellingPrice is not empty
+        });
+
         String primaryKey = "itemId";
 
-        AddPage dialog = new AddPage(currentPage, filePath, fieldLabels, dataTypes, fieldOptions, primaryKey);
+        AddPage dialog = new AddPage(currentPage, filePath, fieldLabels, dataTypes, fieldOptions, validationRules, primaryKey);
 
         // Refresh after dialog closes
         JsonArray updatedList = getLatestData();
