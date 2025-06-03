@@ -65,6 +65,7 @@ public class StockReportTableHandler implements TableActionHandler{
                 converted.addProperty("Status", "N/A");
                 System.err.println("Error determining stock level status: " + e.getMessage());
             }
+
             
             // Add the converted object to the result array
             convertedArray.add(converted);

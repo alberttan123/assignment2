@@ -254,7 +254,34 @@ public class TablePageFactory {
             System.out.println("items.txt not found.");
         }
         return tablePage;
-    }   
+    }
+    
+    public static TablePage createSalesTable() {
+        TablePage tablePage = null;
+        try{
+            String filePath = "items.txt";
+            JsonArray arr = JsonStorageHelper.loadAsJsonArray(filePath);
+            // itemsTableHandler.setIsApprove(false);
+            JsonArray convertedArray = StockReportTableHandler.convert(arr);
+            String[] excluded = {};
+            List<String> columnOrder = List.of();
+
+            // Combined columns
+            Map<String, String> combined = new HashMap<>();
+            // combined.put("Full Name", "name.fname name.lname");
+            // combined.put("Birthdate", "dob.day dob.month dob.year");
+
+            String pointerKeyPath = "itemId";
+
+            tablePage = new TablePage("Stock Report", false, false, false, excluded, combined, columnOrder, pointerKeyPath, convertedArray, false);
+
+            tablePage.setTableActionHandler(new StockReportTableHandler(tablePage, tablePage));
+        }catch(IOException e){
+            e.printStackTrace();
+            System.out.println("items.txt not found.");
+        }
+        return tablePage;
+    }       
 
     public static TablePage createViewItemsTable() {
         TablePage tablePage = null;
