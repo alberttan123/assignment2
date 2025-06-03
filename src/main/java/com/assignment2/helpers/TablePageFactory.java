@@ -1,28 +1,8 @@
 
 package com.assignment2.helpers;
 
-import com.assignment2.gui_albert.FieldDefinition;
-import com.assignment2.gui_albert.TablePage;
-import com.assignment2.gui_xiang.UpdateStockFromApprovedPOs;
-import com.assignment2.service.UserTableHandler;
-import com.assignment2.service.itemsTableHandler;
-import com.assignment2.service.poTableHandler;
-import com.assignment2.service.StockReportTableHandler;
-import com.assignment2.service.PRTableHandler;
-import com.assignment2.service.SupplierItemsTableHandler;
-import com.assignment2.service.SupplierTableHandler;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.file.Paths;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -31,6 +11,19 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
+
+import com.assignment2.gui_albert.TablePage;
+import com.assignment2.gui_xiang.UpdateStockFromApprovedPOs;
+import com.assignment2.service.PRTableHandler;
+import com.assignment2.service.StockReportTableHandler;
+import com.assignment2.service.SupplierTableHandler;
+import com.assignment2.service.UserTableHandler;
+import com.assignment2.service.inventoryitemsTableHandler;
+import com.assignment2.service.itemsTableHandler;
+import com.assignment2.service.poTableHandler;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 public class TablePageFactory {
 
@@ -195,6 +188,33 @@ public class TablePageFactory {
             tablePage = new TablePage("Items", true, true, true, excluded, combined, columnOrder, pointerKeyPath, convertedArray, false);
 
             tablePage.setTableActionHandler(new itemsTableHandler(tablePage, tablePage));
+        }catch(IOException e){
+            e.printStackTrace();
+            System.out.println("items.txt not found.");
+        }
+        return tablePage;
+    }
+
+    public static TablePage createInventoryItemsTable() {
+        TablePage tablePage = null;
+        try{
+            String filePath = "items.txt";
+            JsonArray arr = JsonStorageHelper.loadAsJsonArray(filePath);
+            // itemsTableHandler.setIsApprove(false);
+            JsonArray convertedArray = inventoryitemsTableHandler.convert(arr);
+            String[] excluded = {};
+            List<String> columnOrder = List.of();
+
+            // Combined columns
+            Map<String, String> combined = new HashMap<>();
+            // combined.put("Full Name", "name.fname name.lname");
+            // combined.put("Birthdate", "dob.day dob.month dob.year");
+
+            String pointerKeyPath = "itemId";
+
+            tablePage = new TablePage("Items", true, false, false, excluded, combined, columnOrder, pointerKeyPath, convertedArray, false);
+
+            tablePage.setTableActionHandler(new inventoryitemsTableHandler(tablePage, tablePage));
         }catch(IOException e){
             e.printStackTrace();
             System.out.println("items.txt not found.");
