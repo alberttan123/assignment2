@@ -47,35 +47,26 @@ public class SupplierTableHandler implements TableActionHandler{
             "address", "string"
         );
 
-
         Map<String, Object> fieldOptions = new HashMap<>();
-        try {
-            fieldOptions.put("itemId", JsonStorageHelper.getDropdownOptions("items.txt", "itemId", "itemName"));
-            fieldOptions.put("supplierId", JsonStorageHelper.getDropdownOptions("Supplier.txt", "supplierId", "name"));
-        } catch (Exception e) {
-
-        }
 
         Map<String, Function<String, Boolean>> validationRules = new HashMap<>();
+        List<String> existingValues = JsonStorageHelper.getListOf(filePath, "name");
+        for (int i = 0; i < existingValues.size(); i++) {
+            existingValues.set(i, existingValues.get(i).toLowerCase());
+        }
+
         validationRules.put("name", val -> {
-            try { return Integer.parseInt(val) > 0; } catch (Exception e) { return false; }
+            try { return !val.trim().isEmpty() && !existingValues.contains(val.trim().toLowerCase()); } catch (Exception e) { return false; } // validate Supplier Name is not empty and isn't already in file
         });
-        validationRules.put("price", val -> {
-            try { return Double.parseDouble(val) >= 0; } catch (Exception e) { return false; }
-        });
-        validationRules.put("requiredBy", val -> {
-            try {
-                return LocalDate.parse(val).isAfter(LocalDate.now().minusDays(1));
-            } catch (Exception e) {
-                return false;
-            }
+        validationRules.put("address", val -> {
+            try { return !val.equals(""); } catch (Exception e) { return false; } // validate sellingPrice is not empty
         });
 
         
         String primaryKey = "supplierId";
 
         
-        AddPage dialog = new AddPage(currentPage, filePath, fieldLabels, dataTypes, fieldOptions, validationRules primaryKey);
+        AddPage dialog = new AddPage(currentPage, filePath, fieldLabels, dataTypes, fieldOptions, validationRules, primaryKey);
 
         // Refresh after dialog closes
         JsonArray updatedList = getLatestData();
@@ -172,7 +163,7 @@ public class SupplierTableHandler implements TableActionHandler{
         String keyVal = rowData.get("supplierId").getAsString();
         // Call helper method to remove the supplier from the JSON file based on supplierId
         deleteRowFromJson(keyVal, pointerKeyPath);
-        System.out.println("Deleted item.");
+        System.out.println("Deleted supplier.");
         page.refreshTableData(getLatestData());
     }
 
@@ -266,15 +257,5 @@ public class SupplierTableHandler implements TableActionHandler{
         }
     }
 
-    // Method to extract supplier names from the current data
-    private List<String> getExistingSupplierNames() {
-        JsonArray currentData = getLatestData();
-        List<String> names = new ArrayList<>();
-        for (JsonElement element : currentData) {
-            JsonObject obj = element.getAsJsonObject();
-            names.add(obj.get("name").getAsString());
-        }
-        return names;
-    }    
 
 }

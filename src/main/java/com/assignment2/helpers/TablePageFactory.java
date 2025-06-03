@@ -9,7 +9,6 @@ import com.assignment2.service.itemsTableHandler;
 import com.assignment2.service.poTableHandler;
 import com.assignment2.service.StockReportTableHandler;
 import com.assignment2.service.PRTableHandler;
-import com.assignment2.service.SupplierItemsTableHandler;
 import com.assignment2.service.SupplierTableHandler;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;

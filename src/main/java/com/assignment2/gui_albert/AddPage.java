@@ -218,7 +218,7 @@ private Map<String, Function<String, Boolean>> validationRules = new HashMap<>()
         try {
             if(primaryKey != null && addIds == null){
                 // single id mode
-                newEntry.addProperty(primaryKey, JsonStorageHelper.getNextId(filePath, primaryKey));
+                newEntry.addProperty(primaryKey, String.valueOf(JsonStorageHelper.getNextId(filePath, primaryKey)));
             }else if(primaryKey == null && addIds != null){
                 // multi id mode
                 for (JsonElement el : addIds) {
