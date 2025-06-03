@@ -7,6 +7,7 @@ import com.assignment2.gui_xiang.UpdateStockFromApprovedPOs;
 import com.assignment2.service.UserTableHandler;
 import com.assignment2.service.itemsTableHandler;
 import com.assignment2.service.poTableHandler;
+import com.assignment2.session.SessionManager;
 import com.assignment2.service.StockReportTableHandler;
 import com.assignment2.service.PRTableHandler;
 import com.assignment2.service.SalesTableHandler;
@@ -68,7 +69,7 @@ public class TablePageFactory {
         return tablePage;
     }
 
-    public static TablePage createPOTable() {
+    public static TablePage viewPOTable() {
         TablePage tablePage = null;
         try{
             String filePath = "PurchaseOrder.txt";
@@ -86,7 +87,7 @@ public class TablePageFactory {
 
             String pointerKeyPath = null;
 
-            tablePage = new TablePage("Purchase Orders", true, false, false, excluded, combined, columnOrder, pointerKeyPath, convertedArray, true);
+            tablePage = new TablePage("Purchase Orders", false, false, false, excluded, combined, columnOrder, pointerKeyPath, convertedArray, false);
 
             tablePage.setTableActionHandler(new poTableHandler(tablePage, false));
             tablePage.setTableActionAdapter(new poTableHandler(tablePage, false));
@@ -97,7 +98,7 @@ public class TablePageFactory {
         return tablePage;
     }
 
-    public static TablePage createPOTablePurchaseManager() {
+    public static TablePage viewPOTableFM() {
         TablePage tablePage = null;
         try{
             String filePath = "PurchaseOrder.txt";
@@ -115,7 +116,7 @@ public class TablePageFactory {
 
             String pointerKeyPath = null;
 
-            tablePage = new TablePage("Purchase Orders", true, false, true, excluded, combined, columnOrder, pointerKeyPath, convertedArray, false);
+            tablePage = new TablePage("Purchase Orders", true, false, false, excluded, combined, columnOrder, pointerKeyPath, convertedArray, false);
 
             tablePage.setTableActionHandler(new poTableHandler(tablePage, false));
             tablePage.setTableActionAdapter(new poTableHandler(tablePage, false));
@@ -153,35 +154,6 @@ public class TablePageFactory {
         }
         return tablePage;
     }
-
-    public static TablePage createViewPOTable() {
-        TablePage tablePage = null;
-        try{
-            String filePath = "PurchaseOrder.txt";
-
-            JsonArray arr = JsonStorageHelper.loadAsJsonArray(filePath);
-            poTableHandler.setIsApprove(false);
-            JsonArray convertedArray = poTableHandler.convert(arr);
-            String[] excluded = {};
-            List<String> columnOrder = List.of();
-
-            // Combined columns
-            Map<String, String> combined = new HashMap<>();
-            // combined.put("Full Name", "name.fname name.lname");
-            // combined.put("Birthdate", "dob.day dob.month dob.year");
-
-            String pointerKeyPath = null;
-
-            tablePage = new TablePage("Purchase Orders", false, false, false, excluded, combined, columnOrder, pointerKeyPath, convertedArray, false);
-
-            tablePage.setTableActionHandler(new poTableHandler(tablePage, false));
-        }catch(IOException e){
-            e.printStackTrace();
-            System.out.println("PurchaseOrder.txt not found.");
-        }
-        return tablePage;
-    }
-
 
     public static TablePage createItemsTable() {
         TablePage tablePage = null;
@@ -237,6 +209,33 @@ public class TablePageFactory {
         return tablePage;
     }
 
+    public static TablePage createInventoryItemsTablePM() {
+        TablePage tablePage = null;
+        try{
+            String filePath = "items.txt";
+            JsonArray arr = JsonStorageHelper.loadAsJsonArray(filePath);
+            // itemsTableHandler.setIsApprove(false);
+            JsonArray convertedArray = inventoryitemsTableHandler.convert(arr);
+            String[] excluded = {};
+            List<String> columnOrder = List.of();
+
+            // Combined columns
+            Map<String, String> combined = new HashMap<>();
+            // combined.put("Full Name", "name.fname name.lname");
+            // combined.put("Birthdate", "dob.day dob.month dob.year");
+
+            String pointerKeyPath = "itemId";
+
+            tablePage = new TablePage("Items", false, false, false, excluded, combined, columnOrder, pointerKeyPath, convertedArray, false);
+
+            tablePage.setTableActionHandler(new inventoryitemsTableHandler(tablePage, tablePage));
+        }catch(IOException e){
+            e.printStackTrace();
+            System.out.println("items.txt not found.");
+        }
+        return tablePage;
+    }
+
     public static TablePage createSupplierTable() {
         TablePage tablePage = null;
         try{
@@ -255,6 +254,33 @@ public class TablePageFactory {
             String pointerKeyPath = "supplierId";
 
             tablePage = new TablePage("Suppliers", true, true, true, excluded, combined, columnOrder, pointerKeyPath, convertedArray, false);
+
+            tablePage.setTableActionHandler(new SupplierTableHandler(tablePage, tablePage));
+        }catch(IOException e){
+            e.printStackTrace();
+            System.out.println("Supplier.txt not found.");
+        }
+        return tablePage;
+    }
+
+    public static TablePage createSupplierTablePM() {
+        TablePage tablePage = null;
+        try{
+            String filePath = "Supplier.txt";
+            JsonArray arr = JsonStorageHelper.loadAsJsonArray(filePath);
+            // itemsTableHandler.setIsApprove(false);
+            JsonArray convertedArray = SupplierTableHandler.convert(arr);
+            String[] excluded = {};
+            List<String> columnOrder = List.of();
+
+            // Combined columns
+            Map<String, String> combined = new HashMap<>();
+            // combined.put("Full Name", "name.fname name.lname");
+            // combined.put("Birthdate", "dob.day dob.month dob.year");
+
+            String pointerKeyPath = "supplierId";
+
+            tablePage = new TablePage("Suppliers", false, false, false, excluded, combined, columnOrder, pointerKeyPath, convertedArray, false);
 
             tablePage.setTableActionHandler(new SupplierTableHandler(tablePage, tablePage));
         }catch(IOException e){
@@ -432,9 +458,87 @@ public class TablePageFactory {
         Map<String, String> combined = new HashMap<>();
         String pointerKeyPath = "prId";
 
-        final TablePage tablePage = new TablePage("Purchase Request", false, false, true, excluded, combined, columnOrder, pointerKeyPath, convertedArray, false);
+        final TablePage tablePage = new TablePage("Purchase Request",true, true, true, excluded, combined, columnOrder, pointerKeyPath, convertedArray, false);
         tablePage.setTableActionHandler(new PRTableHandler(tablePage));
 
         return tablePage;
     }
+
+    public static TablePage createViewPRTable() {
+        JsonArray arr;
+
+        try {
+            arr = JsonStorageHelper.loadAsJsonArray("PurchaseRequest.txt");
+        } catch (IOException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "PurchaseRequest.txt not found.");
+            arr = new JsonArray(); // fallback to empty array
+        }
+
+        final JsonArray items = arr; // final copy for lambda use
+
+        JsonArray convertedArray = PRTableHandler.convert(items);
+        String[] excluded = {};
+        List<String> columnOrder = List.of("PR ID", "Item", "Quantity", "Supplier", "Required By", "Raised By");
+        Map<String, String> combined = new HashMap<>();
+        String pointerKeyPath = "prId";
+
+        final TablePage tablePage = new TablePage("Purchase Request", false, false, false, excluded, combined, columnOrder, pointerKeyPath, convertedArray, false);
+        tablePage.setTableActionHandler(new PRTableHandler(tablePage));
+
+        if ("purchase_manager".equals(SessionManager.getUserRole())) {
+            JButton generatePOButton = new JButton("Generate PO from Selected PR");
+
+            generatePOButton.addActionListener(e -> {
+                String pointerKey = tablePage.getPointerKeyPath(); // returns "prId"
+                String pointerValue = tablePage.getSelectedPointerValue(); // this returns selected PR ID (String)
+
+                if (pointerValue == null) {
+                    JOptionPane.showMessageDialog(tablePage, "Please select a PR row first.");
+                    return;
+                }
+
+                JsonObject prData = tablePage.findRowByPointerValue(pointerValue);
+                if (prData == null) {
+                    JOptionPane.showMessageDialog(tablePage, "PR not found.");
+                    return;
+                }
+
+                if (!"Approved".equalsIgnoreCase(prData.get("status").getAsString())) {
+                    JOptionPane.showMessageDialog(tablePage, "Only approved PRs can be converted to PO.");
+                    return;
+                }
+
+                try {
+                    JsonObject newPO = createPoFromPr(prData);
+                    JsonArray poArray = JsonStorageHelper.loadAsJsonArray("PurchaseOrder.txt");
+                    poArray.add(newPO);
+                    JsonStorageHelper.saveToJson("PurchaseOrder.txt", poArray);
+                    JOptionPane.showMessageDialog(tablePage, "PO generated from PR #" + pointerValue);
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                    JOptionPane.showMessageDialog(tablePage, "Failed to generate PO.");
+                }
+            });
+
+            tablePage.addToTop(generatePOButton);
+        }
+
+        return tablePage;
+    }
+
+    private static JsonObject createPoFromPr(JsonObject prData) throws IOException {
+        JsonObject po = new JsonObject();
+        po.addProperty("poId", JsonStorageHelper.getNextId("PurchaseOrder.txt", "poId"));
+        po.addProperty("prId", prData.get("prId").getAsInt());
+        po.add("items", prData.get("items").deepCopy());
+        po.addProperty("status", "Pending");
+
+        int userId = SessionManager.getCurrentUserId(); // Ensure this method exists
+        po.addProperty("generatedByUserId", userId);
+        po.addProperty("createdAt", java.time.LocalDateTime.now()
+                .format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+
+        return po;
+    } 
 }

@@ -10,9 +10,8 @@ public class RoleAccessControl {
                 "manage_items",
                 "manage_suppliers",
                 "enter_daily_sales",
-                "create_pr",
-                "view_prs",
-                "view_po_list"
+                "pr_management",
+                "view_pos"
         )));
 
         roleAccessMap.put("inventory_manager", new HashSet<>(Arrays.asList(
@@ -24,8 +23,9 @@ public class RoleAccessControl {
         )));
 
         roleAccessMap.put("purchase_manager", new HashSet<>(Arrays.asList(
-                "view_items_suppliers",
-                "view_prs",
+                "view_items_table",
+                "view_suppliers_table",
+                "view_pr",
                 "view_po_list"
         )));
 

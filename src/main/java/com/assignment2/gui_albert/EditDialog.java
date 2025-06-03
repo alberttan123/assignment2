@@ -57,6 +57,8 @@ public class EditDialog extends JDialog {
                         String currentValue = context.editedData.get(key).getAsString();
                         for (int i = 0; i < dropdown.getItemCount(); i++) {
                             ComboItem item = dropdown.getItemAt(i);
+                            System.out.println("currentValue: " + currentValue);
+                            System.out.println("item: " + item.getValue());
                             if (item.getValue().equals(currentValue)) {
                                 dropdown.setSelectedItem(item);
                                 break;

@@ -59,7 +59,7 @@ public class FunctionButtonFactory {
             openWithReturnToHome(currentWindow, SalesTableHandler::createSalesPage);
         });
 
-        actions.put("create_pr", () -> {
+        actions.put("pr_management", () -> {
             System.out.println("Launching Create PR Dialog...");
             if (currentWindow != null) currentWindow.dispose();
 
@@ -77,15 +77,11 @@ public class FunctionButtonFactory {
             }
         });
 
-        actions.put("view_prs", () -> {
-            System.out.println("Displaying PR List...");
-        });
-
         actions.put("view_po_list", () -> {
             System.out.println("Showing PO List...");
             if (currentWindow != null) currentWindow.dispose();
 
-            TablePage poTable = TablePageFactory.createPOTablePurchaseManager();
+            TablePage poTable = TablePageFactory.viewPOTable();
             if (poTable != null) {
                 poTable.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
                 poTable.addWindowListener(new java.awt.event.WindowAdapter() {
@@ -104,6 +100,42 @@ public class FunctionButtonFactory {
             if (currentWindow != null) currentWindow.dispose();
 
             TablePage poTable = TablePageFactory.createInventoryItemsTable();
+            if (poTable != null) {
+                poTable.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                poTable.addWindowListener(new java.awt.event.WindowAdapter() {
+                    @Override
+                    public void windowClosed(java.awt.event.WindowEvent e) {
+                        System.out.println("Returning to Home Page...");
+                        new com.assignment2.gui_albert.HomePage().setVisible(true);
+                    }
+                });
+                poTable.setVisible(true);
+            }
+        });
+
+        actions.put("view_items_table", () -> {
+            System.out.println("Viewing Items...");
+            if (currentWindow != null) currentWindow.dispose();
+
+            TablePage poTable = TablePageFactory.createInventoryItemsTablePM();
+            if (poTable != null) {
+                poTable.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                poTable.addWindowListener(new java.awt.event.WindowAdapter() {
+                    @Override
+                    public void windowClosed(java.awt.event.WindowEvent e) {
+                        System.out.println("Returning to Home Page...");
+                        new com.assignment2.gui_albert.HomePage().setVisible(true);
+                    }
+                });
+                poTable.setVisible(true);
+            }
+        });
+
+        actions.put("view_suppliers_table", () -> {
+            System.out.println("Viewing suppliers table...");
+            if (currentWindow != null) currentWindow.dispose();
+
+            TablePage poTable = TablePageFactory.createSupplierTablePM();
             if (poTable != null) {
                 poTable.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
                 poTable.addWindowListener(new java.awt.event.WindowAdapter() {
@@ -173,9 +205,9 @@ public class FunctionButtonFactory {
 
         actions.put("view_pos", () -> {
             System.out.println("Viewing Purchase Orders...");
-                        if (currentWindow != null) currentWindow.dispose();
+            if (currentWindow != null) currentWindow.dispose();
 
-            TablePage poTable = TablePageFactory.createViewPOTable();
+            TablePage poTable = TablePageFactory.viewPOTable();
             if (poTable != null) {
                 poTable.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
                 poTable.addWindowListener(new java.awt.event.WindowAdapter() {
@@ -189,8 +221,22 @@ public class FunctionButtonFactory {
             }
         });
 
-        actions.put("view_items_suppliers", () -> {
-            System.out.println("Viewing Items and Suppliers...");
+        actions.put("view_suppliers", () -> {
+            System.out.println("Viewing Suppliers...");
+            if (currentWindow != null) currentWindow.dispose();
+
+            TablePage poTable = TablePageFactory.createSupplierTable();
+            if (poTable != null) {
+                poTable.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                poTable.addWindowListener(new java.awt.event.WindowAdapter() {
+                    @Override
+                    public void windowClosed(java.awt.event.WindowEvent e) {
+                        System.out.println("Returning to Home Page...");
+                        new com.assignment2.gui_albert.HomePage().setVisible(true);
+                    }
+                });
+                poTable.setVisible(true);
+            }
         });
 
         actions.put("process_payments", () -> {
@@ -203,13 +249,27 @@ public class FunctionButtonFactory {
 
         actions.put("view_pr", () -> {
             System.out.println("Viewing Purchase Requisition...");
+            if (currentWindow != null) currentWindow.dispose();
+
+            TablePage poTable = TablePageFactory.createViewPRTable();
+            if (poTable != null) {
+                poTable.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                poTable.addWindowListener(new java.awt.event.WindowAdapter() {
+                    @Override
+                    public void windowClosed(java.awt.event.WindowEvent e) {
+                        System.out.println("Returning to Home Page...");
+                        new com.assignment2.gui_albert.HomePage().setVisible(true);
+                    }
+                });
+                poTable.setVisible(true);
+            }
         });
 
         actions.put("view_all_po", () -> {
             System.out.println("Viewing Purchase Order...");
             if (currentWindow != null) currentWindow.dispose();
 
-            TablePage poTable = TablePageFactory.createPOTable();
+            TablePage poTable = TablePageFactory.viewPOTableFM();
             if (poTable != null) {
                 poTable.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
                 poTable.addWindowListener(new java.awt.event.WindowAdapter() {
