@@ -284,4 +284,22 @@ public class JsonStorageHelper {
         }
         return names;
     }
+
+    public static List<String> getUserList() {
+        JsonObject arr = null;
+        JsonArray currentData = null;
+        try {
+            arr = loadAsJsonObject("data/users.txt");
+            currentData = arr.get("users").getAsJsonArray();
+        } catch (IOException e) {
+            System.out.println("File not found: data/users.txt");
+            e.printStackTrace();
+        }
+        List<String> names = new ArrayList<>();
+        for (JsonElement element : currentData) {
+            JsonObject obj = element.getAsJsonObject();
+            names.add(obj.get("email").getAsString());
+        }
+        return names;
+    }
 }

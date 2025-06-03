@@ -6,6 +6,7 @@ import com.assignment2.session.SessionManager;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
+import java.util.List;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -322,7 +323,37 @@ public class AccountFormPage extends GUI {
                 case EDIT_OTHER: action = "Updating user info for"; break;
                 default: action = ""; break;
             }
-            System.out.println(action + " user: " + emailField.getText());
+            
+            String emailInput = emailField.getText().trim();
+            String firstNameInput = firstNameField.getText().trim();
+            String lastNameInput = lastNameField.getText().trim();
+
+            if (emailInput.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Email cannot be empty.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            if (!emailInput.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
+                JOptionPane.showMessageDialog(this, "Email format is invalid.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            List<String> existingValues = JsonStorageHelper.getUserList();
+            for (int i = 0; i < existingValues.size(); i++) {
+                existingValues.set(i, existingValues.get(i).toLowerCase());
+            }
+
+            if (existingValues.contains(emailInput)) {
+                JOptionPane.showMessageDialog(this, "This email is already taken.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            if (firstNameInput.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "First name cannot be empty.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            if (lastNameInput.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Last name cannot be empty.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
 
             String selectedRole = null;
             if (salesManagerBtn.isSelected()) selectedRole = "sales_manager";
@@ -330,7 +361,11 @@ public class AccountFormPage extends GUI {
             else if (financeManagerBtn.isSelected()) selectedRole = "finance_manager";
             else if (purchaseManagerBtn.isSelected()) selectedRole = "purchase_manager";
             else if (adminBtn.isSelected()) selectedRole = "admin";
-            System.out.println("Selected Role: " + selectedRole);
+
+            if (selectedRole == null) {
+                JOptionPane.showMessageDialog(this, "Please select a role.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
 
             JsonObject root;
             try {
@@ -372,6 +407,7 @@ public class AccountFormPage extends GUI {
                             // Preserve password and createdAt and pfp
                             if (existingUser.has("password"))
                                 updatedUser.add("password", existingUser.get("password"));
+                                updatedUser.add("saltStr", existingUser.get("saltStr"));
                             if (existingUser.has("createdAt"))
                                 updatedUser.add("createdAt", existingUser.get("createdAt"));
                             if (existingUser.has("userId"))
