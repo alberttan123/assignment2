@@ -7,6 +7,7 @@ import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.function.*;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -40,16 +41,20 @@ Container parent = null;
 private String filePath = null;
 private String primaryKey = null;
 private JsonArray addIds = null;
+private Map<String, Function<String, Boolean>> validationRules = new HashMap<>();
 
     public AddPage(JFrame parent, String filePath, 
                 LinkedHashMap<String, String> fieldLabels, 
                 Map<String, String> dataTypes, 
-                Map<String, Object> fieldOptions, String primaryKey){
+                Map<String, Object> fieldOptions, 
+                Map<String, Function<String, Boolean>> validationRules,
+                String primaryKey){
         super(parent, "Add Entry", true); // true = modal
         this.filePath = filePath;
         this.fieldLabels = fieldLabels;
         this.dataTypes = dataTypes;
         this.fieldOptions = fieldOptions;
+        this.validationRules = validationRules;
         this.primaryKey = primaryKey;
 
         render();
@@ -60,12 +65,15 @@ private JsonArray addIds = null;
     public AddPage(JFrame parent, String filePath, 
                 LinkedHashMap<String, String> fieldLabels, 
                 Map<String, String> dataTypes, 
-                Map<String, Object> fieldOptions, JsonArray addIds){
+                Map<String, Object> fieldOptions, 
+                Map<String, Function<String, Boolean>> validationRules, 
+                JsonArray addIds){
         super(parent, "Add Entry", true); // true = modal
         this.filePath = filePath;
         this.fieldLabels = fieldLabels;
         this.dataTypes = dataTypes;
         this.fieldOptions = fieldOptions;
+        this.validationRules = validationRules;
         this.addIds = addIds;
 
         render();
@@ -159,39 +167,43 @@ private JsonArray addIds = null;
         for (Map.Entry<String, JComponent> entry : fieldInputs.entrySet()) {
             String key = entry.getKey();
             JComponent input = entry.getValue();
+            String type = dataTypes.get(key);
+            String valueStr = null;
 
-            if (input instanceof JTextField) {
-                String value = ((JTextField) input).getText();
-                String type = dataTypes.get(key);
-
-                try {
-                    switch (type) {
-                        case "int":
-                            int intVal = Integer.parseInt(value);
-                            newEntry.addProperty(key, String.valueOf(intVal));
-                            break;
-
-                        case "price":
-                            double priceVal = Double.parseDouble(value);
-                            newEntry.addProperty(key, String.format("%.2f", priceVal));
-                            break;
-
-                        default:
-                            newEntry.addProperty(key, value); // string or fallback
+            try {
+                if (input instanceof JTextField) {
+                    valueStr = ((JTextField) input).getText();
+                    if ("price".equals(type)) {
+                        double priceVal = Double.parseDouble(valueStr);
+                        valueStr = String.format("%.2f", priceVal);
                     }
-                } catch (NumberFormatException ex) {
-                    JOptionPane.showMessageDialog(this, "Invalid input for: " + key + " (" + type + ")");
-                    return; // stop saving
+                } else if (input instanceof JComboBox) {
+                    @SuppressWarnings("unchecked")
+                    Map<String, String> options = (Map<String, String>) fieldOptions.get(key);
+                    String selected = (String) ((JComboBox<?>) input).getSelectedItem();
+                    valueStr = options.get(selected); // Use value ID
+                } else if (input instanceof DatePickerGroup) {
+                    valueStr = ((DatePickerGroup) input).getFormattedDate();
+                } else if (input instanceof JSpinner) {
+                    valueStr = String.valueOf(((JSpinner) input).getValue());
                 }
-            } else if (input instanceof JComboBox) {
-                String selected = (String) ((JComboBox<?>) input).getSelectedItem();
 
-                @SuppressWarnings("unchecked")
-                Map<String, String> options = (Map<String, String>) fieldOptions.get(key);
-                newEntry.addProperty(key, options.get(selected)); // use value ID
-            } else if (input instanceof DatePickerGroup) {
-                String date = ((DatePickerGroup) input).getFormattedDate();
-                newEntry.addProperty(key, date);
+                // VALIDATION (once, for all types)
+                if (validationRules.containsKey(key)) {
+                    boolean isValid = validationRules.get(key).apply(valueStr);
+                    if (!isValid) {
+                        JOptionPane.showMessageDialog(this, "Validation failed for: " + key);
+                        return;
+                    }
+                }
+
+                // Save value
+                newEntry.addProperty(key, valueStr);
+
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Invalid input for: " + key + " (" + type + ")");
+                ex.printStackTrace();
+                return;
             }
         }
 
@@ -203,6 +215,7 @@ private JsonArray addIds = null;
                 // multi id mode
                 for (JsonElement el : addIds) {
                     JsonObject def = el.getAsJsonObject();
+                    System.out.println("Saving keys: " + def);
 
                     String key = def.get("primaryKey").getAsString();
                     String saveAs = def.has("saveAsKey") ? def.get("saveAsKey").getAsString() : key;
@@ -214,11 +227,12 @@ private JsonArray addIds = null;
                     } else {
                         // auto generate id
                         String path = def.get("filePath").getAsString();
-                        int nextId = JsonStorageHelper.getNextId(path, key);
+                        String nextId = String.valueOf(JsonStorageHelper.getNextId(path, key));
                         newEntry.addProperty(saveAs, nextId);
                     }
                 }
             }
+            System.out.println("New entry: " + newEntry);
             JsonStorageHelper.updateOrInsert(filePath, newEntry, null); // matching key is null, because it is add, not update
             JOptionPane.showMessageDialog(this, "Saved successfully!");
             this.dispose();

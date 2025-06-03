@@ -1,18 +1,1 @@
-[
-    {
-        "prId": "1",
-        "itemId": "301",
-        "supplierId": "401",
-        "requiredBy": "2025-06-03",
-        "quantity": "15",
-        "raisedByUserId": "1"
-    },
-    {
-        "prId": "2",
-        "itemId": "301",
-        "supplierId": "402",
-        "requiredBy": "2025-06-03",
-        "quantity": "20",
-        "raisedByUserId": "1"
-    }
-]
+[{"prId":"1","itemId":"301","supplierId":"401","requiredBy":"2025-06-03","quantity":"15","raisedByUserId":"1"},{"prId":"2","itemId":"301","supplierId":"402","requiredBy":"2025-06-03","quantity":"20","raisedByUserId":"1"},{"itemId":"307","requiredBy":"2025-06-03","quantity":"7","supplierId":"401","prId":"3","raisedByUserId":"7"},{"itemId":"306","requiredBy":"2025-06-03","quantity":"4","supplierId":"402","prId":"4","raisedByUserId":"7"}]
