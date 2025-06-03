@@ -1,11 +1,13 @@
 package com.assignment2.service;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.function.Function;
 
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
@@ -56,6 +58,21 @@ public class PRTableHandler implements TableActionHandler{
             e.printStackTrace();
         }
 
+        Map<String, Function<String, Boolean>> validationRules = new HashMap<>();
+        validationRules.put("quantity", val -> {
+            try { return Integer.parseInt(val) > 0; } catch (Exception e) { return false; }
+        });
+        validationRules.put("price", val -> {
+            try { return Double.parseDouble(val) >= 0; } catch (Exception e) { return false; }
+        });
+        validationRules.put("requiredBy", val -> {
+            try {
+                return LocalDate.parse(val).isAfter(LocalDate.now().minusDays(1));
+            } catch (Exception e) {
+                return false;
+            }
+        });
+
         // String primaryKey = "prId";
         JsonArray keys = new JsonArray();
 
@@ -71,7 +88,7 @@ public class PRTableHandler implements TableActionHandler{
         keys.add(idDef);
         keys.add(userDef);
 
-        AddPage dialog = new AddPage(page, filePath, fieldLabels, dataTypes, fieldOptions, keys);
+        AddPage dialog = new AddPage(page, filePath, fieldLabels, dataTypes, fieldOptions, validationRules, keys);
 
         // Refresh after dialog closes
         JsonArray updatedList = getLatestData();
