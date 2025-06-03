@@ -7,6 +7,7 @@ import com.assignment2.gui_xiang.UpdateStockFromApprovedPOs;
 import com.assignment2.service.UserTableHandler;
 import com.assignment2.service.itemsTableHandler;
 import com.assignment2.service.poTableHandler;
+import com.assignment2.service.PRTableHandler;
 import com.assignment2.service.SupplierItemsTableHandler;
 import com.assignment2.service.SupplierTableHandler;
 import com.google.gson.JsonArray;
@@ -372,6 +373,31 @@ public class TablePageFactory {
         });
 
         tablePage.addToTop(updateStockButton);
+        return tablePage;
+    }
+
+    public static TablePage createPRTable() {
+        JsonArray arr;
+
+        try {
+            arr = JsonStorageHelper.loadAsJsonArray("PurchaseRequest.txt");
+        } catch (IOException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "PurchaseRequest.txt not found.");
+            arr = new JsonArray(); // fallback to empty array
+        }
+
+        final JsonArray items = arr; // final copy for lambda use
+
+        JsonArray convertedArray = PRTableHandler.convert(items);
+        String[] excluded = {};
+        List<String> columnOrder = List.of("PR ID", "Item", "Quantity", "Supplier", "Required By", "Raised By");
+        Map<String, String> combined = new HashMap<>();
+        String pointerKeyPath = "prId";
+
+        final TablePage tablePage = new TablePage("Purchase Request", false, false, true, excluded, combined, columnOrder, pointerKeyPath, convertedArray, false);
+        tablePage.setTableActionHandler(new PRTableHandler(tablePage));
+
         return tablePage;
     }
 }
