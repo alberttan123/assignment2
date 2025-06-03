@@ -107,17 +107,17 @@ public class PRTableHandler implements TableActionHandler{
         try {
             poList = JsonStorageHelper.loadAsJsonArray(filePath);
         } catch (IOException e) {
-            JOptionPane.showMessageDialog(null, "Failed to load PO file.");
+            JOptionPane.showMessageDialog(null, "Failed to load PR file.");
             return;
         }
 
         // Find original row
-        int targetPoId = record.get("poId").getAsInt();
+        int targetPoId = record.get("PR ID").getAsInt();
 
         JsonObject original = null;
         for (JsonElement el : poList) {
             JsonObject obj = el.getAsJsonObject();
-            if (obj.get("poId").getAsInt() == targetPoId) {
+            if (obj.get("prId").getAsInt() == targetPoId) {
                 original = obj;
                 break;
             }
@@ -129,12 +129,16 @@ public class PRTableHandler implements TableActionHandler{
         }
 
         Map<String, FieldDefinition> fieldDefs = new LinkedHashMap<>();
+        fieldDefs.put("itemId", FieldDefinition
+            .dropdown("items.txt", "itemName", "itemId")
+            .withLabel("Item")
+            .withKey("itemId")
+            .required());
         fieldDefs.put("supplierId", FieldDefinition
             .dropdown("Supplier.txt", "name", "supplierId")
             .withLabel("Supplier")
             .withKey("supplierId")
             .required());
-
         fieldDefs.put("Quantity", FieldDefinition
             .of("int")
             .withLabel("Quantity")
@@ -146,54 +150,37 @@ public class PRTableHandler implements TableActionHandler{
         context.editedData = new JsonObject();
         context.editedData.addProperty("supplierId", supplierId);
         context.editedData.addProperty("Quantity", original.get("quantity").getAsString());
-        context.tableName = "purchase_order";
+        context.editedData.addProperty("itemId", itemId);
+        context.tableName = "purchase_requisition";
         context.putMeta("supplierId", supplierId);
         context.putMeta("itemId", itemId);
 
 
         new EditDialog(page, updatedData -> {
             // Ensure poId is preserved from the original data
-            String poId = context.originalData.get("poId").getAsString();
-            updatedData.addProperty("poId", poId);
+            String poId = context.originalData.get("prId").getAsString();
+            updatedData.addProperty("prId", poId);
 
             try {
-                JsonStorageHelper.updateOrInsert("PurchaseOrder.txt", updatedData, "poId");
+                JsonStorageHelper.updateOrInsert("PurchaseRequest.txt", updatedData, "prId");
 
-                JsonArray updatedList = JsonStorageHelper.loadAsJsonArray("PurchaseOrder.txt");
+                JsonArray updatedList = JsonStorageHelper.loadAsJsonArray("PurchaseRequest.txt");
                 page.refreshTableData(convert(updatedList));
             } catch (IOException e) {
-                JOptionPane.showMessageDialog(null, "Failed to update PO record.");
+                JOptionPane.showMessageDialog(null, "Failed to update PR record.");
                 e.printStackTrace();
             }
         }, fieldDefs, context, (EditValidator) (newData, ctx) -> {
-
-            // if no changes made, close (won't show Message Dialog)
-            if (newData == null || newData.entrySet().isEmpty()) {
-                System.out.println("No changes made. Skipping validation.");
-                return true;
-            }
-
-            String validatedSupplierId = ctx.getMeta("supplierId").toString();
-            String validatedItemId = ctx.getMeta("itemId").toString();
-            
-            //checks if supplier has the item
-            boolean isValid = JsonStorageHelper.rowExists("supplier_items.txt", row ->
-                row.get("supplierId").getAsString().equals(validatedSupplierId) &&
-                row.get("itemId").getAsString().equals(validatedItemId)
-            );
-
-            if (!isValid) {
-                JOptionPane.showMessageDialog(null, "Selected supplier does not provide this item.");
-                return false;
-            }
-
             return true;
         }).setVisible(true);
     }
 
     @Override
     public void onDelete(JsonObject rowData, String pointerKeyPath) {
-        throw new UnsupportedOperationException("onDelete unused");
+        System.out.println(rowData);
+        String keyVal = rowData.get("PR ID").getAsString();
+            deleteRowFromJson(keyVal, pointerKeyPath);
+            page.refreshTableData(convert(getLatestData()));
     }
 
     public static JsonArray convert(JsonArray rawArray) {
@@ -251,5 +238,40 @@ public class PRTableHandler implements TableActionHandler{
             e.printStackTrace();
         }
         return data;
+    }
+
+    
+    private void deleteRowFromJson(String keyValue, String pointerKeyPath) {
+        try {
+            JsonArray arr = getLatestData();
+
+            for (int i = 0; i < arr.size(); i++) {
+                JsonObject obj = arr.get(i).getAsJsonObject();
+                String value = getNestedValue(obj, pointerKeyPath);
+                if (value.equals(keyValue)) {
+                    arr.remove(i);
+                    JsonStorageHelper.saveToJson(filePath, arr);
+                    break;
+                }
+            }
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(page, "Failed to delete row from JSON.");
+            e.printStackTrace();
+        }
+    }
+
+    private String getNestedValue(JsonObject obj, String path) {
+        String[] parts = path.split("\\.");
+        JsonElement current = obj;
+
+        for (String part : parts) {
+            if (current != null && current.isJsonObject()) {
+                current = current.getAsJsonObject().get(part);
+            } else {
+                return "";
+            }
+        }
+
+        return current != null && !current.isJsonNull() ? current.getAsString() : "";
     }
 }

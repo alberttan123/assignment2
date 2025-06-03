@@ -342,7 +342,7 @@ public class AccountFormPage extends GUI {
                 existingValues.set(i, existingValues.get(i).toLowerCase());
             }
 
-            if (existingValues.contains(emailInput)) {
+            if (existingValues.contains(emailInput) && mode == Mode.CREATE) {
                 JOptionPane.showMessageDialog(this, "This email is already taken.", "Validation Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }

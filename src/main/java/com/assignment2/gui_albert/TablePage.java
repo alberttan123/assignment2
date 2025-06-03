@@ -102,6 +102,9 @@ public class TablePage extends GUI {
         setVisible(true);
     }
 
+    public String getPointerKeyPath(){
+        return pointerKeyPath;
+    }
     public void setTableActionHandler(TableActionHandler actionHandler){
         this.actionHandler = actionHandler;
     }
@@ -134,6 +137,40 @@ public class TablePage extends GUI {
             customTopPanel.revalidate();
             customTopPanel.repaint();
         }
+    }
+
+    public String getSelectedPointerValue() {
+        int row = table.getSelectedRow();
+        if (row < 0 || pointerKeyPath == null) return null;
+        int modelRow = table.convertRowIndexToModel(row);
+        int keyIndex = getColumnIndex(pointerKeyPath);
+        if (keyIndex < 0) return null;
+        Object val = table.getModel().getValueAt(modelRow, keyIndex);
+        System.out.println(row);
+        System.out.println(modelRow);
+        System.out.println(keyIndex);
+        System.out.println(val);
+        return val != null ? val.toString() : null;
+    }
+
+    public int getColumnIndex(String key) {
+        for (int i = 0; i < extractedHeaders.length; i++) {
+            if (extractedHeaders[i].equalsIgnoreCase(key)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    public JsonObject findRowByPointerValue(String pointerValue) {
+        for (JsonElement element : jsonData) {
+            JsonObject obj = element.getAsJsonObject();
+            String currentValue = getNestedValue(obj, pointerKeyPath);
+            if (pointerValue.equals(currentValue)) {
+                return obj;
+            }
+        }
+        return null;
     }
 
     @Override
