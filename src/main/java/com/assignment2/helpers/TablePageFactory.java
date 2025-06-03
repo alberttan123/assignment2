@@ -259,7 +259,7 @@ public class TablePageFactory {
     public static TablePage createSalesTable() {
         TablePage tablePage = null;
         try{
-            String filePath = "items.txt";
+            String filePath = "Sales.txt";
             JsonArray arr = JsonStorageHelper.loadAsJsonArray(filePath);
             // itemsTableHandler.setIsApprove(false);
             JsonArray convertedArray = StockReportTableHandler.convert(arr);

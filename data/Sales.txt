@@ -1,0 +1,8 @@
+[
+  {
+    "salesId": "601",
+    "itemId": "301",
+    "quantity": "2",
+    "total sales": "3999.98",
+  }
+]
