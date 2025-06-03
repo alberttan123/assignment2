@@ -8,6 +8,7 @@ import java.util.function.Supplier;
 
 import com.assignment2.gui_albert.HomePage;
 import com.assignment2.gui_albert.TablePage;
+import com.assignment2.service.SalesTableHandler;
 
 public class FunctionButtonFactory {
 
@@ -53,6 +54,7 @@ public class FunctionButtonFactory {
 
         actions.put("enter_daily_sales", () -> {
             System.out.println("Launching Daily Sales Entry...");
+            openWithReturnToHome(currentWindow, SalesTableHandler::createSalesPage);
         });
 
         actions.put("create_pr", () -> {

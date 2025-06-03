@@ -84,6 +84,27 @@ public class JsonStorageHelper {
         }
     }
 
+
+    // ---------- NEW METHOD: saveJsonArray ----------
+    /**
+     * Saves a JsonArray to the specified file path (relative to DATA_DIR).
+     * The file will be overwritten if it already exists.
+     *
+     * @param filePath The relative path of the file (e.g., "Sales.txt").
+     * @param array    The JsonArray to save.
+     * @throws IOException If an I/O error occurs writing to the file.
+     */
+    public static void saveJsonArray(String filePath, JsonArray array) throws IOException {
+        Path target = DATA_DIR.resolve(filePath);
+        Files.createDirectories(target.getParent()); // Ensure parent directory (e.g., 'data') exists
+        try (Writer writer = Files.newBufferedWriter(target)) {
+            gson.toJson(array, writer); // Use Gson to write the JsonArray to the file
+        }
+        // System.out.println("Saved JsonArray to: " + target.toAbsolutePath()); // Debug
+    }
+    // -----------------------------------------------
+
+
     // ---------- Update logic ----------
     public static void updateOrInsert(String filePath, JsonObject updatedData, String matchingIdField) throws IOException {
         JsonArray array = loadAsJsonArray(filePath);

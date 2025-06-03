@@ -160,11 +160,11 @@ public class SupplierTableHandler implements TableActionHandler{
     @Override
     public void onDelete(JsonObject rowData, String pointerKeyPath){
         // Extract the value of the supplierId from the row that is being deleted
-        String keyVal = rowData.get("supplierId").getAsString();
+        String keyVal = rowData.get("Supplier Id").getAsString();
         // Call helper method to remove the supplier from the JSON file based on supplierId
         deleteRowFromJson(keyVal, pointerKeyPath);
         System.out.println("Deleted supplier.");
-        page.refreshTableData(getLatestData());
+        page.refreshTableData(convert(getLatestData()));
     }
 
     // Method to load latest data from items.txt and return it as JsonArray
@@ -190,7 +190,7 @@ public class SupplierTableHandler implements TableActionHandler{
             System.out.println(original);
 
             // Lookup and add item details based on itemId
-            converted.addProperty("supplierId", original.get("supplierId").getAsInt());
+            converted.addProperty("Supplier Id", original.get("supplierId").getAsInt());
             converted.addProperty("Supplier", getNameById("Supplier.txt", "supplierId", original.get("supplierId").getAsInt(), "name"));
             converted.addProperty("Address", getNameById("Supplier.txt", "supplierId", original.get("supplierId").getAsInt(), "address"));
 
