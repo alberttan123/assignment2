@@ -3,7 +3,7 @@
         "prId": "1",
         "itemId": "301",
         "supplierId": "401",
-        "requiredDate": "2025-06-03",
+        "requiredBy": "2025-06-03",
         "quantity": "15",
         "raisedByUserId": "1"
     },
@@ -11,7 +11,7 @@
         "prId": "2",
         "itemId": "301",
         "supplierId": "402",
-        "requiredDate": "2025-06-03",
+        "requiredBy": "2025-06-03",
         "quantity": "20",
         "raisedByUserId": "1"
     }

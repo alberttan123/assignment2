@@ -39,6 +39,10 @@ public class SessionManager {
         return currentUser != null ? nameObject.get("lname").getAsString() : null;
     }
 
+    public static String getUserId() {
+        return currentUser != null ? String.valueOf(currentUser.get("userId").getAsInt()) : null;
+    }
+
     public static String getUserEmail() {
         return currentUser != null ? currentUser.get("email").getAsString() : null;
     }

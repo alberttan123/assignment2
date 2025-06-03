@@ -147,7 +147,17 @@ public class JsonStorageHelper {
             JsonArray array = loadAsJsonArray(filePath);
             for (JsonElement el : array) {
                 JsonObject obj = el.getAsJsonObject();
-                result.put(obj.get(nameField).getAsString(), obj.get(idField).getAsString());
+                JsonElement nameEl = obj.get(nameField);
+                JsonElement idEl = obj.get(idField);
+
+                // only proceed if both fields are present and not null
+                if (nameEl != null && !nameEl.isJsonNull() && idEl != null && !idEl.isJsonNull()) {
+                    String name = nameEl.getAsString();
+                    String id = idEl.isJsonPrimitive() && idEl.getAsJsonPrimitive().isNumber()
+                            ? String.valueOf(idEl.getAsInt())
+                            : idEl.getAsString();
+                    result.put(name, id);
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();
