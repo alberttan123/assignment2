@@ -7,7 +7,9 @@ import java.net.URL;
 import java.nio.file.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 
@@ -244,5 +246,21 @@ public class JsonStorageHelper {
             e.printStackTrace();
             return 1;
         }
+    }
+
+    public static List<String> getListOf(String filePath, String key) {
+        JsonArray currentData = null;
+        try {
+            currentData = loadAsJsonArray(filePath);
+        } catch (IOException e) {
+            System.out.println("File not found: " + filePath);
+            e.printStackTrace();
+        }
+        List<String> names = new ArrayList<>();
+        for (JsonElement element : currentData) {
+            JsonObject obj = element.getAsJsonObject();
+            names.add(obj.get(key).getAsString());
+        }
+        return names;
     }
 }
