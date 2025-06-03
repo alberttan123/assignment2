@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import java.io.IOException;
 import com.assignment2.helpers.JsonStorageHelper;
+import com.assignment2.helpers.PasswordHasher;
 
 public class LoginService {
     private static final String USER_DATA_PATH = "data/users.txt";
@@ -19,7 +20,7 @@ public class LoginService {
                     return 2; //new account - opens first time login modal
                 }
                 if (user.get("email").getAsString().equals(email) &&
-                    user.get("password").getAsString().equals(password)) {
+                    compare(user.get("saltStr").getAsString(), user.get("password").getAsString(), password)) {
                     return 1; //successful login
                 }
             }
@@ -44,5 +45,16 @@ public class LoginService {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public static boolean compare(String saltStrFromJson, String hash, String inputPassword){
+        byte[] savedSalt = PasswordHasher.decodeSalt(saltStrFromJson);
+        String inputHash = PasswordHasher.hashPassword(inputPassword, savedSalt);
+        boolean match = inputHash.equals(hash);
+        if(match){
+            return true;
+        }else{
+            return false;
+        }
     }
 }

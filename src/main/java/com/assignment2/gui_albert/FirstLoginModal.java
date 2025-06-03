@@ -3,6 +3,7 @@ package com.assignment2.gui_albert;
 import javax.swing.*;
 
 import com.assignment2.helpers.JsonStorageHelper;
+import com.assignment2.helpers.PasswordHasher;
 import com.assignment2.session.SessionManager;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -80,13 +81,18 @@ public class FirstLoginModal extends JDialog {
         }
 
         try {
+            byte[] salt = PasswordHasher.generateSalt();
+            String hashed = PasswordHasher.hashPassword(pass1, salt);
+            String saltStr = PasswordHasher.encodeSalt(salt);
+
             JsonObject root = JsonStorageHelper.loadAsJsonObject("data/users.txt");
             JsonArray users = root.getAsJsonArray("users");
 
             for (int i = 0; i < users.size(); i++) {
                 JsonObject user = users.get(i).getAsJsonObject();
                 if (user.get("email").getAsString().equalsIgnoreCase(email)) {
-                    user.addProperty("password", pass1);
+                    user.addProperty("password", hashed);
+                    user.addProperty("saltStr", saltStr);
                     break;
                 }
             }
