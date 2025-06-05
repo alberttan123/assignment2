@@ -290,9 +290,12 @@ public class AccountFormPage extends GUI {
                     yearBox.setSelectedItem(dob.get("year").getAsString());
                     originalYear = dob.get("year").getAsString();
 
-                    if(SessionManager.checkPfpExists()){
+                    if(SessionManager.checkPfpExists() && mode == Mode.EDIT_SELF){
                         profileLabel.setText("");
                         profileLabel.setIcon(new ImageIcon(SessionManager.getPfp()));
+                    }if(mode == Mode.EDIT_OTHER && SessionManager.getOtherPfp(email) instanceof Image){
+                        profileLabel.setText("");
+                        profileLabel.setIcon(new ImageIcon(SessionManager.getOtherPfp(email)));
                     }
 
                     String role = user.get("role").getAsString();

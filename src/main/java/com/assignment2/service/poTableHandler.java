@@ -122,16 +122,17 @@ public class poTableHandler extends TableActionAdapter{
             String validatedSupplierId = ctx.getMeta("supplierId").toString();
             String validatedItemId = ctx.getMeta("itemId").toString();
             
+            //VALIDATION DISABLED
             //checks if supplier has the item
-            boolean isValid = JsonStorageHelper.rowExists("supplier_items.txt", row ->
-                row.get("supplierId").getAsString().equals(validatedSupplierId) &&
-                row.get("itemId").getAsString().equals(validatedItemId)
-            );
-
-            if (!isValid) {
-                JOptionPane.showMessageDialog(null, "Selected supplier does not provide this item.");
-                return false;
-            }
+            // boolean isValid = JsonStorageHelper.rowExists("supplier_items.txt", row ->
+            //     row.get("supplierId").getAsString().equals(validatedSupplierId) &&
+            //     row.get("itemId").getAsString().equals(validatedItemId)
+            // );
+            //
+            // if (!isValid) {
+            //     JOptionPane.showMessageDialog(null, "Selected supplier does not provide this item.");
+            //     return false;
+            // }
 
             return true;
         }).setVisible(true);

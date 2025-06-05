@@ -202,7 +202,7 @@ public class inventoryitemsTableHandler implements TableActionHandler {
     // Delete a row from a JSON array using keyValue
     private void deleteRowFromJson(String keyValue, String pointerKeyPath) {
         try {
-            JsonArray arr = getLatestData(); // e.g., your array of items
+            JsonArray arr = getLatestData(); // e.g., array of items
 
             for (int i = 0; i < arr.size(); i++) {
                 JsonObject obj = arr.get(i).getAsJsonObject();

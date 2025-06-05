@@ -105,6 +105,9 @@ public class TablePage extends GUI {
     public String getPointerKeyPath(){
         return pointerKeyPath;
     }
+    public void setPointerKeyPath(String pointerKeyPath){
+        this.pointerKeyPath = pointerKeyPath;
+    }
     public void setTableActionHandler(TableActionHandler actionHandler){
         this.actionHandler = actionHandler;
     }
@@ -143,13 +146,9 @@ public class TablePage extends GUI {
         int row = table.getSelectedRow();
         if (row < 0 || pointerKeyPath == null) return null;
         int modelRow = table.convertRowIndexToModel(row);
-        int keyIndex = getColumnIndex(pointerKeyPath);
+        int keyIndex = getColumnIndex("Pr Id");
         if (keyIndex < 0) return null;
         Object val = table.getModel().getValueAt(modelRow, keyIndex);
-        System.out.println(row);
-        System.out.println(modelRow);
-        System.out.println(keyIndex);
-        System.out.println(val);
         return val != null ? val.toString() : null;
     }
 
@@ -475,5 +474,21 @@ public class TablePage extends GUI {
             }
         }
         return sb.toString().trim();
+    }
+    public JsonObject getSelectedRowData() {
+        JsonObject returnArray = null;
+        int selectedViewRow = table.getSelectedRow();
+
+        int modelrow = table.convertRowIndexToModel(selectedViewRow);
+        for (int i = 0; i< tableModel.getRowCount(); i++){
+            returnArray.addProperty("Pr Id", (String) tableModel.getValueAt(modelrow, 0));
+            returnArray.addProperty("Item", (String) tableModel.getValueAt(modelrow, 1));
+            returnArray.addProperty("Quantity", (String) tableModel.getValueAt(modelrow, 2));
+            returnArray.addProperty("Supplier", (String) tableModel.getValueAt(modelrow, 3));
+            returnArray.addProperty("Required By", (String) tableModel.getValueAt(modelrow, 4));
+            returnArray.addProperty("Raised By", (String) tableModel.getValueAt(modelrow, 5));
+        }
+
+        return returnArray;
     }
 }

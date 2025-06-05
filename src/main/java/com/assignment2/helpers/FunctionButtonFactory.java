@@ -9,7 +9,9 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 
 import com.assignment2.gui_albert.HomePage;
+import com.assignment2.gui_albert.InventoryChangesFrame;
 import com.assignment2.gui_albert.TablePage;
+import com.assignment2.service.FinancialReportGenerator;
 import com.assignment2.service.SalesTableHandler;
 
 public class FunctionButtonFactory {
@@ -241,10 +243,16 @@ public class FunctionButtonFactory {
 
         actions.put("process_payments", () -> {
             System.out.println("Processing Payments...");
+            openWithReturnToHome(currentWindow, InventoryChangesFrame::new);
         });
 
         actions.put("generate_financial_reports", () -> {
             System.out.println("Generating Financial Reports...");
+            if (currentWindow != null) currentWindow.dispose();
+
+            FinancialReportGenerator.generateReport();
+
+            new com.assignment2.gui_albert.HomePage().setVisible(true);
         });
 
         actions.put("view_pr", () -> {

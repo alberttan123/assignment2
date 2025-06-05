@@ -22,6 +22,7 @@ import com.assignment2.helpers.JsonStorageHelper;
 import com.assignment2.session.SessionManager;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 
 public class PRTableHandler implements TableActionHandler{
@@ -273,5 +274,58 @@ public class PRTableHandler implements TableActionHandler{
         }
 
         return current != null && !current.isJsonNull() ? current.getAsString() : "";
+    }
+
+    private static JsonObject findOriginalPrById(String prIdToFind, JsonArray allPrs) {
+        if (prIdToFind == null || allPrs == null) {
+            return null;
+        }
+        for (JsonElement element : allPrs) {
+            JsonObject pr = element.getAsJsonObject();
+            if (pr.has("prId") && pr.get("prId").getAsString().equals(prIdToFind)) {
+                return pr;
+            }
+        }
+        return null; // Not found
+    }
+
+    private static JsonObject createPoFromPr(JsonObject prDisplayData, JsonArray originalPrList) throws IOException {
+        // get "PR ID" from display data
+        // the pointerValue from tablePage.getSelectedPointerValue() is already the prId
+        String prIdString = prDisplayData.get("PR ID").getAsString();
+
+        // Find the original PR from PurchaseRequest.txt using its ID
+        JsonObject originalPR = findOriginalPrById(prIdString, originalPrList);
+        if (originalPR == null) {
+            throw new IOException("Original PR data not found for PR ID: " + prIdString);
+        }
+
+        JsonObject newPO = new JsonObject();
+        newPO.addProperty("poId", JsonStorageHelper.getNextId("PurchaseOrder.txt", "poId"));
+        newPO.addProperty("prId", Integer.parseInt(originalPR.get("prId").getAsString())); // From original PR
+        newPO.addProperty("itemId", Integer.parseInt(originalPR.get("itemId").getAsString())); // From original PR
+        newPO.addProperty("supplierId", Integer.parseInt(originalPR.get("supplierId").getAsString())); // From original PR
+        newPO.addProperty("quantity", Integer.parseInt(originalPR.get("quantity").getAsString())); // From original PR
+
+        newPO.addProperty("status", "Pending"); // New POs start as Pending
+
+        // Assuming SessionManager.getUserId() returns the current user's ID as an int or parsable string
+        int generatedByUserId = 1; // Default or placeholder
+        try {
+            // Replace with your actual SessionManager call
+            generatedByUserId = Integer.parseInt(SessionManager.getUserId()); 
+        } catch (NumberFormatException | NullPointerException e) {
+            System.err.println("Could not get valid userId from SessionManager, using default: 1. Error: " + e.getMessage());
+            // Handle error or use a default/guest user ID
+        }
+        newPO.addProperty("generatedByUserId", generatedByUserId);
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        newPO.addProperty("createdAt", LocalDateTime.now().format(formatter));
+
+        newPO.add("approvedByUserId", JsonNull.INSTANCE); // No approver yet
+        newPO.addProperty("approvedAt", ""); // No approval date yet
+
+        return newPO;
     }
 }

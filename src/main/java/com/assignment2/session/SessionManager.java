@@ -2,6 +2,7 @@ package com.assignment2.session;
 
 import java.awt.Image;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -10,6 +11,7 @@ import java.nio.file.Paths;
 import javax.swing.ImageIcon;
 
 import com.assignment2.helpers.JsonStorageHelper;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 public class SessionManager {
@@ -90,6 +92,53 @@ public class SessionManager {
 
     public static Image getPfp() {
         String profilePicturePath = currentUser.get("profilePicturePath").getAsString();
+
+        if (profilePicturePath == null || profilePicturePath.isBlank()) {
+            System.err.println("No profile picture path specified.");
+            return null;
+        }
+
+        // Use same base path as JsonStorageHelper
+        Path imagePath = JsonStorageHelper.getDataPath(profilePicturePath);
+
+        if (Files.exists(imagePath)) {
+            try {
+                ImageIcon icon = new ImageIcon(imagePath.toString());
+                return icon.getImage().getScaledInstance(100, 100, Image.SCALE_SMOOTH);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        // Fallback to classpath resource
+        URL imageUrl = SessionManager.class.getClassLoader().getResource("data/" + profilePicturePath);
+        if (imageUrl != null) {
+            ImageIcon icon = new ImageIcon(imageUrl);
+            return icon.getImage().getScaledInstance(100, 100, Image.SCALE_SMOOTH);
+        }
+
+        System.err.println("Profile picture not found: " + profilePicturePath);
+        return null;
+    }
+
+    public static Image getOtherPfp(String email) {
+        JsonObject users = null;
+        try{
+            users = JsonStorageHelper.loadAsJsonObject("data/users.txt");
+        }catch (IOException e){
+            System.out.println("File not found: " + "data/users.txt");
+            e.printStackTrace();
+        }
+
+        String profilePicturePath = null;
+
+        JsonArray arr = (JsonArray) users.get("users");
+        for(int i = 0; i < arr.size(); i++){
+            JsonObject user = (JsonObject) arr.get(i);
+            if(email.equals(user.get("email").getAsString())){
+                profilePicturePath = user.get("profilePicturePath").getAsString();
+            }
+        }
 
         if (profilePicturePath == null || profilePicturePath.isBlank()) {
             System.err.println("No profile picture path specified.");

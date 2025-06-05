@@ -14,10 +14,13 @@ import com.assignment2.service.SalesTableHandler;
 import com.assignment2.service.SupplierTableHandler;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -465,80 +468,163 @@ public class TablePageFactory {
     }
 
     public static TablePage createViewPRTable() {
-        JsonArray arr;
+        JsonArray purchaseRequestsArray; // Holds original PR data
 
         try {
-            arr = JsonStorageHelper.loadAsJsonArray("PurchaseRequest.txt");
+            purchaseRequestsArray = JsonStorageHelper.loadAsJsonArray("PurchaseRequest.txt");
         } catch (IOException e) {
             e.printStackTrace();
-            JOptionPane.showMessageDialog(null, "PurchaseRequest.txt not found.");
-            arr = new JsonArray(); // fallback to empty array
+            JOptionPane.showMessageDialog(null, "PurchaseRequest.txt not found. Cannot load PRs.");
+            purchaseRequestsArray = new JsonArray(); // fallback to empty array
         }
 
-        final JsonArray items = arr; // final copy for lambda use
+        final JsonArray originalPrDataList = purchaseRequestsArray;
 
-        JsonArray convertedArray = PRTableHandler.convert(items);
+        // PRTableHandler.convert() MUST add "prId" (original key) and "Status" to the display objects
+        JsonArray convertedDisplayArray = PRTableHandler.convert(originalPrDataList);
+
         String[] excluded = {};
-        List<String> columnOrder = List.of("PR ID", "Item", "Quantity", "Supplier", "Required By", "Raised By");
+        List<String> columnOrder = List.of("PR ID", "Item", "Quantity", "Supplier", "Required By", "Raised By", "Status");
         Map<String, String> combined = new HashMap<>();
-        String pointerKeyPath = "prId";
+        String pointerKeyPath = "prId"; // This is the key in ORIGINAL data AND in displayed data for findRowByPointerValue
 
-        final TablePage tablePage = new TablePage("Purchase Request", false, false, false, excluded, combined, columnOrder, pointerKeyPath, convertedArray, false);
+        final TablePage tablePage = new TablePage("Purchase Request List", false, false, false,
+                excluded, combined, columnOrder,
+                pointerKeyPath, convertedDisplayArray, true); // allowApproveReject = true for PRs
+
         tablePage.setTableActionHandler(new PRTableHandler(tablePage));
+
 
         if ("purchase_manager".equals(SessionManager.getUserRole())) {
             JButton generatePOButton = new JButton("Generate PO from Selected PR");
 
             generatePOButton.addActionListener(e -> {
-                String pointerKey = tablePage.getPointerKeyPath(); // returns "prId"
-                String pointerValue = tablePage.getSelectedPointerValue(); // this returns selected PR ID (String)
+                String selectedOriginalPrId = tablePage.getSelectedPointerValue(); // Gets original prId (e.g., "202")
 
-                if (pointerValue == null) {
+                if (selectedOriginalPrId == null) {
                     JOptionPane.showMessageDialog(tablePage, "Please select a PR row first.");
                     return;
                 }
 
-                JsonObject prData = tablePage.findRowByPointerValue(pointerValue);
-                if (prData == null) {
-                    JOptionPane.showMessageDialog(tablePage, "PR not found.");
+                tablePage.setPointerKeyPath("PR ID");
+                JsonObject displayedPrData = tablePage.findRowByPointerValue(selectedOriginalPrId);
+                tablePage.setPointerKeyPath("prId");
+
+                if (displayedPrData == null) {
+                    JOptionPane.showMessageDialog(tablePage, "Could not retrieve details for selected PR (ID: " + selectedOriginalPrId + "). It might have been removed or data is inconsistent.");
+                    System.err.println("Failed to find displayed data for original PR ID: " + selectedOriginalPrId + " using findRowByPointerValue.");
                     return;
                 }
 
-                if (!"Approved".equalsIgnoreCase(prData.get("status").getAsString())) {
-                    JOptionPane.showMessageDialog(tablePage, "Only approved PRs can be converted to PO.");
+                if (JsonStorageHelper.getListOfInt("PurchaseOrder.txt", "prId").contains(Integer.parseInt(selectedOriginalPrId))){
+                    JOptionPane.showMessageDialog(tablePage, "This PR (ID: " + selectedOriginalPrId + ") already has a PO linked to it.");
+                    System.err.println("Failed to create PR from original PR ID: " + selectedOriginalPrId + " . This PR already has a PO linked to it.");
                     return;
                 }
 
                 try {
-                    JsonObject newPO = createPoFromPr(prData);
-                    JsonArray poArray = JsonStorageHelper.loadAsJsonArray("PurchaseOrder.txt");
-                    poArray.add(newPO);
-                    JsonStorageHelper.saveToJson("PurchaseOrder.txt", poArray);
-                    JOptionPane.showMessageDialog(tablePage, "PO generated from PR #" + pointerValue);
+                    // Pass the original PR ID and the full list of original PRs
+                    JsonObject newPO = createPoFromPr(selectedOriginalPrId, originalPrDataList);
+
+                    JsonArray currentPoArray;
+                    try {
+                        currentPoArray = JsonStorageHelper.loadAsJsonArray("PurchaseOrder.txt");
+                    } catch (IOException ex) {
+                        System.out.println("PurchaseOrder.txt not found or empty, creating new array for PO.");
+                        currentPoArray = new JsonArray();
+                    }
+                    currentPoArray.add(newPO);
+                    JsonStorageHelper.saveToJson("PurchaseOrder.txt", currentPoArray);
+                    JOptionPane.showMessageDialog(tablePage, "PO #" + newPO.get("poId").getAsString() + " generated successfully from PR #" + selectedOriginalPrId);
+
                 } catch (IOException ex) {
                     ex.printStackTrace();
-                    JOptionPane.showMessageDialog(tablePage, "Failed to generate PO.");
+                    JOptionPane.showMessageDialog(tablePage, "Failed to generate PO: " + ex.getMessage());
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    JOptionPane.showMessageDialog(tablePage, "An unexpected error occurred while generating PO: " + ex.getMessage());
                 }
             });
 
             tablePage.addToTop(generatePOButton);
         }
-
+        tablePage.setVisible(true);
         return tablePage;
     }
 
-    private static JsonObject createPoFromPr(JsonObject prData) throws IOException {
-        JsonObject po = new JsonObject();
-        po.addProperty("poId", JsonStorageHelper.getNextId("PurchaseOrder.txt", "poId"));
-        po.addProperty("prId", prData.get("prId").getAsInt());
-        po.add("items", prData.get("items").deepCopy());
-        po.addProperty("status", "Pending");
+    private static JsonObject createPoFromPr(String originalPrId, JsonArray originalPrList) throws IOException {
+        // Find the original PR from PurchaseRequest.txt using its ID
+        JsonObject originalPR = findOriginalPrById(originalPrId, originalPrList);
+        if (originalPR == null) {
+            throw new IOException("Original PR data not found for PR ID: " + originalPrId);
+        }
 
-        int userId = SessionManager.getCurrentUserId(); // Ensure this method exists
-        po.addProperty("generatedByUserId", userId);
-        po.addProperty("createdAt", java.time.LocalDateTime.now()
-                .format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        JsonObject newPO = new JsonObject();
+        newPO.addProperty("poId", JsonStorageHelper.getNextId("PurchaseOrder.txt", "poId"));
+        newPO.addProperty("prId", Integer.parseInt(originalPR.get("prId").getAsString()));
+        newPO.addProperty("itemId", Integer.parseInt(originalPR.get("itemId").getAsString()));
+        newPO.addProperty("supplierId", Integer.parseInt(originalPR.get("supplierId").getAsString()));
+        newPO.addProperty("quantity", Integer.parseInt(originalPR.get("quantity").getAsString()));
+        newPO.addProperty("status", "Pending");
 
-        return po;
-    } 
+        int generatedByUserId = 1;
+        try {
+            generatedByUserId = Integer.parseInt(SessionManager.getUserId());
+        } catch (Exception e) {
+            System.err.println("Could not get valid userId from SessionManager, using default 1. Error: " + e.getMessage());
+        }
+        newPO.addProperty("generatedByUserId", generatedByUserId);
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        newPO.addProperty("createdAt", LocalDateTime.now().format(formatter));
+        newPO.add("approvedByUserId", JsonNull.INSTANCE);
+        newPO.addProperty("approvedAt", "");
+
+        return newPO;
+    }
+
+     public static JsonObject findOriginalPrById(String prIdToFind, JsonArray originalPrList) {
+        if (prIdToFind == null || originalPrList == null) {
+            System.err.println("findOriginalPrById: prIdToFind or originalPrList is null. Cannot search.");
+            return null;
+        }
+
+        if (prIdToFind.trim().isEmpty()) {
+            System.err.println("findOriginalPrById: prIdToFind is empty. Cannot search.");
+            return null;
+        }
+
+        for (JsonElement element : originalPrList) {
+            if (element == null || !element.isJsonObject()) {
+                System.err.println("findOriginalPrById: Encountered a non-JsonObject element in originalPrList. Skipping.");
+                continue;
+            }
+
+            JsonObject currentPr = element.getAsJsonObject();
+
+            // check if the current PR JsonObject has the "prId" field
+            if (currentPr.has("prId")) {
+                JsonElement prIdElement = currentPr.get("prId");
+
+                // ensure the "prId" field is not null and is a string
+                if (prIdElement != null && !prIdElement.isJsonNull() && prIdElement.isJsonPrimitive() && prIdElement.getAsJsonPrimitive().isString()) {
+                    String currentPrIdValue = prIdElement.getAsString();
+
+                    // Compare the current PR's ID with the ID we're looking for
+                    if (prIdToFind.equals(currentPrIdValue)) {
+                        return currentPr; // Found the matching pr, return its JsonObject
+                    }
+                } else {
+                    System.err.println("findOriginalPrById: Encountered a PR with missing, null, or non-string 'prId' field: " + currentPr.toString());
+                }
+            } else {
+                // This indicates an issue with the data format in PurchaseRequest.txt
+                System.err.println("findOriginalPrById: Encountered a PR JsonObject without a 'prId' field: " + currentPr.toString());
+            }
+        }
+
+        // If the loop completes without finding a match
+        System.out.println("findOriginalPrById: PR with ID '" + prIdToFind + "' not found in the provided list.");
+        return null;
+    }
 }

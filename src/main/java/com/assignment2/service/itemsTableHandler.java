@@ -42,11 +42,13 @@ public class itemsTableHandler implements TableActionHandler {
         fieldLabels.put("Item Name", "itemName");
         fieldLabels.put("Stock Level", "stockLevel");
         fieldLabels.put("Selling Price", "sellingPrice");
+        fieldLabels.put("Buying Price", "buyingPrice");
 
         Map<String, String> dataTypes = Map.of(
             "itemName", "string",
             "stockLevel", "int",
-            "sellingPrice", "price"
+            "sellingPrice", "price",
+            "buyingPrice", "price"
         );
 
         Map<String, Object> fieldOptions = new HashMap<>();
@@ -63,6 +65,9 @@ public class itemsTableHandler implements TableActionHandler {
         validationRules.put("sellingPrice", val -> {
             try { return !val.equals(""); } catch (Exception e) { return false; } // validate sellingPrice is not empty
         });
+        validationRules.put("buyingPrice", val -> {
+            try { return !val.equals(""); } catch (Exception e) { return false; } // validate sellingPrice is not empty
+        });
 
         String primaryKey = "itemId";
 
@@ -76,8 +81,8 @@ public class itemsTableHandler implements TableActionHandler {
     @Override
     public void onEdit(JsonObject record) {
         // Extract the item name from the input JSON record
-        String itemName = record.get("Item").getAsString();
         String itemId = record.get("Item Id").getAsString();
+        String itemName = record.get("Item").getAsString();
 
         JsonArray itemList;
         try {
@@ -110,10 +115,10 @@ public class itemsTableHandler implements TableActionHandler {
 
         Map<String, FieldDefinition> fieldDefs = new LinkedHashMap<>();
         // Field for Item Name
-        fieldDefs.put("itemId", FieldDefinition
-                .dropdown("items.txt", "itemName", "itemId")
-                .withLabel("Item")
-                .withKey("itemId")
+        fieldDefs.put("itemName", FieldDefinition
+                .of("string")
+                .withLabel("Item Name")
+                .withKey("itemName")
                 .required());
 
         // Field for Stock Level
@@ -125,9 +130,16 @@ public class itemsTableHandler implements TableActionHandler {
 
         // Field for Selling Price
         fieldDefs.put("sellingPrice", FieldDefinition
-                .of("int")
+                .of("float")
                 .withLabel("Selling Price")
                 .withKey("sellingPrice")
+                .required());
+
+        // Field for Buying Price
+        fieldDefs.put("buyingPrice", FieldDefinition
+                .of("float")
+                .withLabel("Buying Price")
+                .withKey("buyingPrice")
                 .required());
 
         // Set up the edit context with original and editable data
@@ -136,7 +148,7 @@ public class itemsTableHandler implements TableActionHandler {
         context.editedData = new JsonObject();
 
         // Pre-fill the editable fields with original data
-        context.editedData.addProperty("itemId", itemId);
+        context.editedData.addProperty("itemName", itemName);
         context.editedData.addProperty("stockLevel", original.get("stockLevel").getAsString());
         context.editedData.addProperty("sellingPrice", original.get("sellingPrice").getAsString());
         context.tableName = "items";
@@ -163,7 +175,7 @@ public class itemsTableHandler implements TableActionHandler {
     @Override
     public void onDelete(JsonObject rowData, String pointerKeyPath) {
         // Extract the value of the itemId from the row that is being deleted
-        String keyVal = rowData.get("itemId").getAsString();
+        String keyVal = rowData.get("Item Id").getAsString();
         // Call helper method to remove the item from the JSON file based on itemId
         deleteRowFromJson(keyVal, pointerKeyPath);
         System.out.println("Deleted item.");
@@ -197,6 +209,7 @@ public class itemsTableHandler implements TableActionHandler {
             converted.addProperty("Item", getNameById("items.txt", "itemId", original.get("itemId").getAsInt(), "itemName"));
             converted.addProperty("Stock Level", getNameById("items.txt", "itemId", original.get("itemId").getAsInt(), "stockLevel"));
             converted.addProperty("Selling Price", getNameById("items.txt", "itemId", original.get("itemId").getAsInt(), "sellingPrice"));
+            converted.addProperty("Buying Price", getNameById("items.txt", "itemId", original.get("itemId").getAsInt(), "buyingPrice"));
 
             // Add the converted object to the result array
             convertedArray.add(converted);

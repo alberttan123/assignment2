@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.HashMap; // Added for itemsMap initialization in createSalesPage
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,19 +27,15 @@ public class SalesTableHandler implements TableActionHandler {
     private static final String ITEMS_FILE_PATH = "items.txt";
     private Map<String, JsonObject> itemsMap;
 
-    // Constructor remains the same
     public SalesTableHandler(JFrame currentPage, TablePage page) {
-        this.currentPage = currentPage; // This will be the salesDisplayPage
-        // this.page = page; // if different from currentPage
+        this.currentPage = currentPage;
         loadItemsData();
     }
 
-    // Getter for itemsMap (if needed publicly, otherwise can be private/package-private)
     public Map<String, JsonObject> getItemsMap() {
         return this.itemsMap;
     }
 
-    // Getter for raw sales data (if needed publicly)
     public JsonArray getRawSalesData() {
         try {
             return JsonStorageHelper.loadAsJsonArray(SALES_FILE_PATH);
@@ -60,23 +56,17 @@ public class SalesTableHandler implements TableActionHandler {
         }
     }
 
-    // In SalesTableHandler.java
     public static TablePage createSalesPage() {
         System.out.println("SalesTableHandler: Creating Sales Page...");
         String pageTitle = "Daily Sales Entry";
-        boolean allowEdit = false; // Or true, based on your needs for sales
-        boolean allowDelete = false; // Or true
-        boolean allowAdd = true; // Sales page needs add
-        String pointerKeyPath = "saleId"; // Example, if you use it for anything
-        JsonArray initialJsonData = new JsonArray(); // Start empty, will be loaded
+        boolean allowEdit = true; // MODIFIED: Enable editing
+        boolean allowDelete = true; // MODIFIED: Enable deleting
+        boolean allowAdd = true;
+        String pointerKeyPath = "saleId"; // Used by TablePage to identify original data's key
+        JsonArray initialJsonData = new JsonArray();
 
-        // If using the simpler existing constructor:
-        // TablePage salesDisplayPage = new TablePage(pageTitle, allowEdit, allowDelete, allowAdd, pointerKeyPath, initialJsonData);
-
-        // OR if using the more complex constructor:
         String[] excludedKeys = new String[0];
         Map<String, String> combinedColumns = new LinkedHashMap<>();
-        // Define the column order to match what convertSalesDataForDisplay will produce:
         List<String> columnOrder = List.of("Sale ID", "Item Name", "Quantity Sold", "Total Sales", "Created At");
         boolean allowApproveReject = false;
 
@@ -86,12 +76,11 @@ public class SalesTableHandler implements TableActionHandler {
             pointerKeyPath, initialJsonData, allowApproveReject
         );
 
-        // The rest of the setup remains the same:
         SalesTableHandler salesHandler = new SalesTableHandler(salesDisplayPage, salesDisplayPage);
         salesDisplayPage.setTableActionHandler(salesHandler);
 
         JsonArray rawSalesData = salesHandler.getRawSalesData();
-        Map<String, JsonObject> itemsMapInstance = salesHandler.getItemsMap();
+        Map<String, JsonObject> itemsMapInstance = salesHandler.getItemsMap(); // Get the loaded map
         JsonArray displayData = SalesTableHandler.convertSalesDataForDisplay(rawSalesData, itemsMapInstance);
         
         salesDisplayPage.refreshTableData(displayData);
@@ -99,52 +88,53 @@ public class SalesTableHandler implements TableActionHandler {
         return salesDisplayPage;
     }
 
+    // Helper to safely get itemId as String
+    private String getItemIdAsString(JsonObject jsonObject, String keyName) {
+        JsonElement idElement = jsonObject.get(keyName);
+        if (idElement == null || idElement.isJsonNull()) return null;
 
-    // loadItemsData method (ensure it uses this.currentPage for dialogs if needed)
+        if (idElement.isJsonPrimitive() && idElement.getAsJsonPrimitive().isString()) {
+            return idElement.getAsString();
+        } else if (idElement.isJsonPrimitive() && idElement.getAsJsonPrimitive().isNumber()) {
+            return idElement.getAsNumber().toString();
+        }
+        return null; // Or throw an error if type is unexpected
+    }
+
     private void loadItemsData() {
         this.itemsMap = new HashMap<>();
         try {
             JsonArray itemsArray = JsonStorageHelper.loadAsJsonArray(ITEMS_FILE_PATH);
             for (JsonElement itemElement : itemsArray) {
                 JsonObject itemObject = itemElement.getAsJsonObject();
-                String itemIdStr;
-                JsonElement itemIdElement = itemObject.get("itemId");
+                String itemIdStr = getItemIdAsString(itemObject, "itemId");
 
-                if (itemIdElement == null || itemIdElement.isJsonNull()) continue;
-
-                if (itemIdElement.isJsonPrimitive() && itemIdElement.getAsJsonPrimitive().isString()) {
-                    itemIdStr = itemIdElement.getAsString();
-                } else if (itemIdElement.isJsonPrimitive() && itemIdElement.getAsJsonPrimitive().isNumber()) {
-                    itemIdStr = itemIdElement.getAsNumber().toString();
+                if (itemIdStr != null) {
+                    itemsMap.put(itemIdStr, itemObject);
                 } else {
-                    continue;
+                    System.err.println("Warning: Item found with missing or invalid itemId in " + ITEMS_FILE_PATH);
                 }
-                itemsMap.put(itemIdStr, itemObject);
             }
         } catch (IOException e) {
             e.printStackTrace();
-            // Use this.currentPage for dialogs if it's set. 
-            // In createSalesPage context, currentPage won't be set yet when loadItemsData is called by constructor.
-            // Consider passing the JFrame to loadItemsData if dialogs are critical during initial load.
-            // For now, system.err will have to do if currentPage is null here.
             if (this.currentPage != null) {
                 JOptionPane.showMessageDialog(this.currentPage, "Error loading items data from " + ITEMS_FILE_PATH + ": " + e.getMessage(), "File Error", JOptionPane.ERROR_MESSAGE);
             } else {
-                System.err.println("Error loading items data: " + e.getMessage() + " (SalesTableHandler constructor, currentPage is null at this point if called from static factory)");
+                System.err.println("Error loading items data: " + e.getMessage() + " (SalesTableHandler constructor, currentPage is null if called from static factory and error occurs here)");
             }
         } catch (IllegalStateException e) {
              e.printStackTrace();
              if (this.currentPage != null) {
                 JOptionPane.showMessageDialog(this.currentPage, "Error parsing " + ITEMS_FILE_PATH + ". Is it a valid JSON array? Details: " + e.getMessage(), "JSON Error", JOptionPane.ERROR_MESSAGE);
              } else {
-                System.err.println("Error parsing items data: " + e.getMessage() + " (SalesTableHandler constructor, currentPage is null at this point if called from static factory)");
+                System.err.println("Error parsing items data: " + e.getMessage() + " (SalesTableHandler constructor, currentPage is null if called from static factory and error occurs here)");
              }
         }
     }
 
     @Override
     public void onAdd() {
-        loadItemsData(); // Refresh items data, especially stock levels, before adding a sale
+        loadItemsData(); 
 
         if (itemsMap == null || itemsMap.isEmpty()) {
             JOptionPane.showMessageDialog(currentPage, "Cannot add sale: Items data could not be loaded or is empty.", "Error", JOptionPane.ERROR_MESSAGE);
@@ -152,14 +142,11 @@ public class SalesTableHandler implements TableActionHandler {
         }
 
         List<String> itemNamesForDropdown = new ArrayList<>();
-        // This map helps retrieve the full item JsonObject from the selected itemName.
         Map<String, JsonObject> itemObjectsByName = new HashMap<>();
 
         for (JsonObject item : itemsMap.values()) {
             if (item.has("itemName") && !item.get("itemName").isJsonNull()) {
                 String name = item.get("itemName").getAsString();
-                // Simple handling for duplicate names: first one wins for dropdown.
-                // A more robust solution might append itemId or use a more complex selection UI.
                 if (!itemObjectsByName.containsKey(name)) {
                     itemNamesForDropdown.add(name);
                     itemObjectsByName.put(name, item);
@@ -172,27 +159,15 @@ public class SalesTableHandler implements TableActionHandler {
             return;
         }
 
-        // 1. Select Item (Dropdown)
         String selectedItemName = (String) JOptionPane.showInputDialog(
-                currentPage,
-                "Select Item:",
-                "Add Sale - Step 1 of 2",
-                JOptionPane.PLAIN_MESSAGE,
-                null, // Icon
-                itemNamesForDropdown.toArray(new String[0]), // Options
-                itemNamesForDropdown.get(0)); // Default selection
+                currentPage, "Select Item:", "Add Sale - Step 1 of 2",
+                JOptionPane.PLAIN_MESSAGE, null, itemNamesForDropdown.toArray(new String[0]), itemNamesForDropdown.get(0));
 
-        if (selectedItemName == null || selectedItemName.trim().isEmpty()) {
-            return; // User cancelled
-        }
+        if (selectedItemName == null || selectedItemName.trim().isEmpty()) return;
 
-        // 2. Input Quantity
         String quantitySoldStr = JOptionPane.showInputDialog(currentPage, "Enter quantity sold for " + selectedItemName + ":", "Add Sale - Step 2 of 2", JOptionPane.PLAIN_MESSAGE);
-        if (quantitySoldStr == null || quantitySoldStr.trim().isEmpty()) {
-            return; // User cancelled or entered nothing
-        }
+        if (quantitySoldStr == null || quantitySoldStr.trim().isEmpty()) return;
 
-        // --- Data Validation and Processing ---
         int quantitySold;
         try {
             quantitySold = Integer.parseInt(quantitySoldStr.trim());
@@ -206,104 +181,68 @@ public class SalesTableHandler implements TableActionHandler {
         }
 
         JsonObject selectedItemObject = itemObjectsByName.get(selectedItemName);
-        // This check is mostly a safeguard; selectedItemName should always be in itemObjectsByName.
         if (selectedItemObject == null) {
-            JOptionPane.showMessageDialog(currentPage, "Selected item '" + selectedItemName + "' details not found. Data might be inconsistent.", "Internal Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(currentPage, "Selected item '" + selectedItemName + "' details not found.", "Internal Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
         
-        String itemId = selectedItemObject.get("itemId").getAsString(); // itemId was standardized to string during loadItemsData
+        String itemId = getItemIdAsString(selectedItemObject, "itemId");
+        if (itemId == null) { // Should not happen if item was in map
+             JOptionPane.showMessageDialog(currentPage, "Selected item '" + selectedItemName + "' has invalid Item ID.", "Internal Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
         double sellingPrice = selectedItemObject.get("sellingPrice").getAsDouble();
-        int currentStockLevel = selectedItemObject.get("stockLevel").getAsInt(); // Assuming 'stockLevel' in items.txt is parsable to int
+        int currentStockLevel = selectedItemObject.get("stockLevel").getAsInt();
 
-        // Validate stock level
         if (quantitySold > currentStockLevel) {
             JOptionPane.showMessageDialog(currentPage, "Quantity sold (" + quantitySold + ") exceeds available stock (" + currentStockLevel + ") for " + selectedItemName + ".", "Stock Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        // --- Calculations ---
         double totalSales = quantitySold * sellingPrice;
         int newStockLevel = currentStockLevel - quantitySold;
-
-        // --- Generate New Sale ID ---
         String newSaleId = generateNewSaleId();
 
-        // --- Create Sale JsonObject ---
         JsonObject newSale = new JsonObject();
         newSale.addProperty("saleId", newSaleId);
         newSale.addProperty("itemId", itemId);
-        newSale.addProperty("quantitySold", String.valueOf(quantitySold)); // Store as string as per Sales.txt format
-        newSale.addProperty("totalSales", String.format("%.2f", totalSales)); // Store as string, formatted
+        newSale.addProperty("quantitySold", String.valueOf(quantitySold));
+        newSale.addProperty("totalSales", String.format("%.2f", totalSales));
         newSale.addProperty("createdAt", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
 
-        // --- Update Stock Level in items.txt (Requirement 5) ---
         boolean stockUpdated = updateItemStockInFile(itemId, newStockLevel);
-        if (!stockUpdated) {
-            // updateItemStockInFile method would have shown an error message.
-            // Sale is not added if stock cannot be updated.
-            return;
-        }
+        if (!stockUpdated) return;
 
-        // --- Add Sale to Sales.txt ---
         try {
-            JsonArray salesArray;
-            try { // Load existing sales or create new array if file doesn't exist/is empty
-                salesArray = JsonStorageHelper.loadAsJsonArray(SALES_FILE_PATH);
-            } catch (IOException e) {
-                salesArray = new JsonArray(); // Start with a new array if file not found or error
-            }
+            JsonArray salesArray = getLatestSalesData(); // Handles file not existing by returning empty array
             salesArray.add(newSale);
-            JsonStorageHelper.saveJsonArray("Sales.txt", salesArray); // Overwrites the file
-            
+            JsonStorageHelper.saveJsonArray(SALES_FILE_PATH, salesArray);
             JOptionPane.showMessageDialog(currentPage, "Sale added successfully! New Sale ID: " + newSaleId, "Success", JOptionPane.INFORMATION_MESSAGE);
         } catch (IOException e) {
             e.printStackTrace();
             JOptionPane.showMessageDialog(currentPage, "Error saving sale to " + SALES_FILE_PATH + ": " + e.getMessage(), "File I/O Error", JOptionPane.ERROR_MESSAGE);
-            // At this point, stock might have been deducted but sale not saved.
-            // A robust system would implement a rollback for stock, but that's complex.
-            // For now, we notify the user.
         }
-
-        // --- Refresh Table View ---
-        JsonArray updatedSalesList = getLatestSalesData();
-        if (currentPage instanceof TablePage) {
-             ((TablePage) currentPage).refreshTableData(convertSalesDataForDisplay(updatedSalesList, this.itemsMap));
-        } else {
-            System.err.println("Warning: currentPage is not an instance of TablePage. Cannot refresh table view.");
-        }
+        refreshSalesTable();
     }
 
     private String generateNewSaleId() {
         int maxId = 0;
         boolean foundAnyIds = false;
-        JsonArray salesArray;
-        try {
-            salesArray = JsonStorageHelper.loadAsJsonArray(SALES_FILE_PATH);
-        } catch (IOException e) { // File might not exist or is not a valid JSON array
-            System.out.println(SALES_FILE_PATH + " not found or is empty/invalid. Starting Sale ID from 601.");
-            return "601"; // Default start ID as per example data
-        }
+        JsonArray salesArray = getLatestSalesData(); // Handles file not existing
 
         for (JsonElement saleElement : salesArray) {
             JsonObject saleObject = saleElement.getAsJsonObject();
             if (saleObject.has("saleId") && !saleObject.get("saleId").isJsonNull()) {
                 try {
                     int currentId = Integer.parseInt(saleObject.get("saleId").getAsString());
-                    if (currentId > maxId) {
-                        maxId = currentId;
-                    }
+                    if (currentId > maxId) maxId = currentId;
                     foundAnyIds = true;
                 } catch (NumberFormatException ex) {
-                    System.err.println("Warning: Non-integer or unparseable saleId found in " + SALES_FILE_PATH + ": " + saleObject.get("saleId").getAsString());
+                    System.err.println("Warning: Non-integer saleId found: " + saleObject.get("saleId").getAsString());
                 }
             }
         }
-
-        if (!foundAnyIds) { // File existed but was empty or contained no parseable saleIds
-            return "601"; // Default start ID
-        }
-        return String.valueOf(maxId + 1);
+        return String.valueOf(foundAnyIds ? maxId + 1 : 601);
     }
     
     private boolean updateItemStockInFile(String itemIdToUpdate, int newStockLevel) {
@@ -314,19 +253,9 @@ public class SalesTableHandler implements TableActionHandler {
 
             for (JsonElement itemElement : itemsArray) {
                 JsonObject itemObject = itemElement.getAsJsonObject();
-                String currentItemIdStr = ""; // Initialize to avoid issues if itemId is missing/null
+                String currentItemIdStr = getItemIdAsString(itemObject, "itemId");
 
-                JsonElement itemIdJsonElement = itemObject.get("itemId");
-                 if (itemIdJsonElement != null && !itemIdJsonElement.isJsonNull()) {
-                    if(itemIdJsonElement.isJsonPrimitive() && itemIdJsonElement.getAsJsonPrimitive().isString()){
-                        currentItemIdStr = itemIdJsonElement.getAsString();
-                    } else if (itemIdJsonElement.isJsonPrimitive() && itemIdJsonElement.getAsJsonPrimitive().isNumber()){
-                        currentItemIdStr = itemIdJsonElement.getAsNumber().toString();
-                    }
-                 }
-
-                if (currentItemIdStr.equals(itemIdToUpdate)) {
-                    // 'stockLevel' in items.txt is given as string, so save as string
+                if (currentItemIdStr != null && currentItemIdStr.equals(itemIdToUpdate)) {
                     itemObject.addProperty("stockLevel", String.valueOf(newStockLevel)); 
                     itemFoundAndUpdated = true;
                 }
@@ -334,13 +263,12 @@ public class SalesTableHandler implements TableActionHandler {
             }
 
             if (itemFoundAndUpdated) {
-                JsonStorageHelper.saveJsonArray(ITEMS_FILE_PATH, updatedItemsArray); // Overwrite items.txt
-                loadItemsData(); // Important: Refresh the local itemsMap cache as stock has changed
+                JsonStorageHelper.saveJsonArray(ITEMS_FILE_PATH, updatedItemsArray);
+                loadItemsData(); // Refresh local itemsMap as stock has changed
                 return true;
             } else {
-                // This case should ideally not be reached if item selection logic is correct
-                System.err.println("Critical Error: Item ID '" + itemIdToUpdate + "' not found in " + ITEMS_FILE_PATH + " during stock update attempt.");
-                JOptionPane.showMessageDialog(currentPage, "Critical Error: Item to update stock for (ID: " + itemIdToUpdate + ") was not found in " + ITEMS_FILE_PATH + ". Sale process aborted before saving sale details.", "Data Consistency Error", JOptionPane.ERROR_MESSAGE);
+                System.err.println("Critical Error: Item ID '" + itemIdToUpdate + "' not found in " + ITEMS_FILE_PATH + " during stock update.");
+                JOptionPane.showMessageDialog(currentPage, "Critical Error: Item ID " + itemIdToUpdate + " not found for stock update.", "Data Consistency Error", JOptionPane.ERROR_MESSAGE);
                 return false;
             }
         } catch (IOException e) {
@@ -350,56 +278,219 @@ public class SalesTableHandler implements TableActionHandler {
         }
     }
 
+    // Helper to find the original sale object from Sales.txt
+    private JsonObject findOriginalSaleById(String saleId) throws IOException {
+        JsonArray salesArray = JsonStorageHelper.loadAsJsonArray(SALES_FILE_PATH);
+        for (JsonElement saleElement : salesArray) {
+            JsonObject saleObject = saleElement.getAsJsonObject();
+            if (saleObject.has("saleId") && saleObject.get("saleId").getAsString().equals(saleId)) {
+                return saleObject;
+            }
+        }
+        return null; // Not found
+    }
+    
     @Override
-    public void onEdit(JsonObject record) {
-        throw new UnsupportedOperationException("onEdit is not supported for Sales records via this handler.");
+    public void onEdit(JsonObject displayRowData) {
+        String saleIdToEdit = displayRowData.get("Sale ID").getAsString();
+        String currentQuantitySoldDisplay = displayRowData.get("Quantity Sold").getAsString();
+
+        try {
+            // 1. Get original sale details from Sales.txt
+            JsonObject originalSale = findOriginalSaleById(saleIdToEdit);
+            if (originalSale == null) {
+                JOptionPane.showMessageDialog(currentPage, "Sale ID " + saleIdToEdit + " not found. Cannot edit.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            String itemId = originalSale.get("itemId").getAsString();
+            int originalQuantitySoldFromFile = Integer.parseInt(originalSale.get("quantitySold").getAsString());
+
+            // 2. Get item details (price, current stock from items.txt)
+            loadItemsData(); // Ensure itemsMap is fresh for stock levels
+            JsonObject itemDetails = itemsMap.get(itemId);
+            if (itemDetails == null) {
+                JOptionPane.showMessageDialog(currentPage, "Item details for ID " + itemId + " (Sale " + saleIdToEdit + ") not found. Cannot edit.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            String itemName = itemDetails.has("itemName") ? itemDetails.get("itemName").getAsString() : "Unknown Item";
+            double sellingPrice = itemDetails.get("sellingPrice").getAsDouble();
+            int currentStockLevelInFile = Integer.parseInt(itemDetails.get("stockLevel").getAsString()); // Stock in items.txt
+
+            // 3. Prompt for new quantity
+            String newQuantityStr = (String) JOptionPane.showInputDialog(
+                    currentPage,
+                    "Editing Sale for: " + itemName + "\nOriginal Quantity: " + originalQuantitySoldFromFile + "\nEnter new quantity sold:",
+                    "Edit Sale ID: " + saleIdToEdit,
+                    JOptionPane.PLAIN_MESSAGE, null, null, currentQuantitySoldDisplay);
+
+            if (newQuantityStr == null || newQuantityStr.trim().isEmpty()) return; // User cancelled
+
+            int newQuantitySold;
+            try {
+                newQuantitySold = Integer.parseInt(newQuantityStr.trim());
+                if (newQuantitySold <= 0) {
+                    JOptionPane.showMessageDialog(currentPage, "New quantity must be a positive whole number.", "Input Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(currentPage, "Invalid quantity format.", "Input Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // 4. Calculate stock adjustments
+            // Stock of the item *before* this particular sale was originally made:
+            int stockAvailableBeforeThisSale = currentStockLevelInFile + originalQuantitySoldFromFile;
+
+            if (newQuantitySold > stockAvailableBeforeThisSale) {
+                JOptionPane.showMessageDialog(currentPage,
+                        "New quantity (" + newQuantitySold + ") exceeds total available stock (" + stockAvailableBeforeThisSale + ") for " + itemName + " (current stock " + currentStockLevelInFile + " + originally sold " + originalQuantitySoldFromFile + ").",
+                        "Stock Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            // The change in quantity sold compared to the original sale quantity
+            int quantityChangeDelta = newQuantitySold - originalQuantitySoldFromFile;
+            // New stock level to be written to items.txt: current stock - changeDelta
+            int finalNewStockLevelForItem = currentStockLevelInFile - quantityChangeDelta;
+
+            // 5. Recalculate total sales
+            double newTotalSales = newQuantitySold * sellingPrice;
+
+            // 6. Update Sales.txt
+            JsonArray salesArray = JsonStorageHelper.loadAsJsonArray(SALES_FILE_PATH);
+            JsonArray updatedSalesArray = new JsonArray();
+            boolean saleUpdatedInFile = false;
+            for (JsonElement saleElement : salesArray) {
+                JsonObject currentSale = saleElement.getAsJsonObject();
+                if (currentSale.get("saleId").getAsString().equals(saleIdToEdit)) {
+                    currentSale.addProperty("quantitySold", String.valueOf(newQuantitySold));
+                    currentSale.addProperty("totalSales", String.format("%.2f", newTotalSales));
+                    // Optional: currentSale.addProperty("updatedAt", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+                    saleUpdatedInFile = true;
+                }
+                updatedSalesArray.add(currentSale);
+            }
+            if (!saleUpdatedInFile) { // Should ideally not happen
+                JOptionPane.showMessageDialog(currentPage, "Failed to find Sale ID " + saleIdToEdit + " in Sales.txt during update. Aborting.", "Internal Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            JsonStorageHelper.saveJsonArray(SALES_FILE_PATH, updatedSalesArray);
+
+            // 7. Update stock level in items.txt
+            boolean stockFileUpdated = updateItemStockInFile(itemId, finalNewStockLevelForItem);
+            if (!stockFileUpdated) {
+                JOptionPane.showMessageDialog(currentPage, "Sale details updated, but FAILED to update stock in items.txt. Data may be inconsistent.", "Critical Stock Update Error", JOptionPane.ERROR_MESSAGE);
+            } else {
+                 JOptionPane.showMessageDialog(currentPage, "Sale ID " + saleIdToEdit + " updated successfully. Stock adjusted.", "Success", JOptionPane.INFORMATION_MESSAGE);
+            }
+            
+            refreshSalesTable();
+
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(currentPage, "Error during edit process: " + e.getMessage(), "File I/O Error", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        } catch (NumberFormatException | IllegalStateException e) { // Catching GSON parse errors for numbers/json
+            JOptionPane.showMessageDialog(currentPage, "Error parsing data (e.g., quantity, price, stock): " + e.getMessage(), "Data Error", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        }
     }
 
     @Override
-    public void onDelete(JsonObject rowData, String pointerKeyPath) {
-        throw new UnsupportedOperationException("onDelete is not supported for Sales records via this handler.");
+    public void onDelete(JsonObject displayRowData, String pointerKeyPath) { // pointerKeyPath is "saleId" from TablePage config
+        String saleIdToDelete = displayRowData.get("Sale ID").getAsString(); // Get from displayed row
+
+        int confirmation = JOptionPane.showConfirmDialog(
+                currentPage,
+                "Are you sure you want to delete Sale ID: " + saleIdToDelete + "?\nThis will add the sold quantity back to item stock.",
+                "Confirm Deletion", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+
+        if (confirmation != JOptionPane.YES_OPTION) return;
+
+        try {
+            // 1. Get original sale details
+            JsonObject originalSale = findOriginalSaleById(saleIdToDelete);
+            if (originalSale == null) {
+                JOptionPane.showMessageDialog(currentPage, "Sale ID " + saleIdToDelete + " not found. Cannot delete.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            String itemId = originalSale.get("itemId").getAsString();
+            int quantitySoldInDeletedSale = Integer.parseInt(originalSale.get("quantitySold").getAsString());
+
+            // 2. Delete sale from Sales.txt
+            JsonArray salesArray = JsonStorageHelper.loadAsJsonArray(SALES_FILE_PATH);
+            JsonArray updatedSalesArray = new JsonArray();
+            boolean saleRemoved = false;
+            for (JsonElement saleElement : salesArray) {
+                JsonObject currentSale = saleElement.getAsJsonObject();
+                if (currentSale.get("saleId").getAsString().equals(saleIdToDelete)) {
+                    saleRemoved = true;
+                } else {
+                    updatedSalesArray.add(currentSale);
+                }
+            }
+
+            if (!saleRemoved) { // Should not happen if findOriginalSaleById found it
+                JOptionPane.showMessageDialog(currentPage, "Internal Error: Sale ID " + saleIdToDelete + " not found for deletion after initial check.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            JsonStorageHelper.saveJsonArray(SALES_FILE_PATH, updatedSalesArray);
+
+            // 3. Revert stock in items.txt
+            loadItemsData(); // Ensure itemsMap is fresh before getting current stock
+            JsonObject itemToUpdate = itemsMap.get(itemId);
+            if (itemToUpdate != null) {
+                int currentStock = Integer.parseInt(itemToUpdate.get("stockLevel").getAsString());
+                int newStockAfterReverting = currentStock + quantitySoldInDeletedSale;
+                boolean stockReverted = updateItemStockInFile(itemId, newStockAfterReverting);
+                 if (!stockReverted) {
+                    JOptionPane.showMessageDialog(currentPage, "Sale record deleted, but FAILED to revert stock for item ID " + itemId + ". Data may be inconsistent.", "Critical Stock Update Error", JOptionPane.ERROR_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(currentPage, "Sale ID " + saleIdToDelete + " deleted. Stock reverted.", "Success", JOptionPane.INFORMATION_MESSAGE);
+                }
+            } else {
+                 JOptionPane.showMessageDialog(currentPage, "Sale ID " + saleIdToDelete + " deleted, but item ID " + itemId + " not found in items.txt. Stock NOT reverted.", "Warning", JOptionPane.WARNING_MESSAGE);
+            }
+            refreshSalesTable();
+
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(currentPage, "Error during deletion: " + e.getMessage(), "File I/O Error", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        } catch (NumberFormatException | IllegalStateException e) {
+            JOptionPane.showMessageDialog(currentPage, "Error parsing quantity/stock: " + e.getMessage(), "Data Error", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        }
     }
 
-    // Renamed from 'convert' to be more descriptive and static.
-    // Takes itemsMap for efficiency, avoiding repeated file reads.
     public static JsonArray convertSalesDataForDisplay(JsonArray rawSalesArray, Map<String, JsonObject> itemsMapForConversion) {
         JsonArray convertedArray = new JsonArray();
+        SalesTableHandler dummyHandler = new SalesTableHandler(null, null); // For getItemIdAsString
 
         for (JsonElement saleEl : rawSalesArray) {
             JsonObject originalSale = saleEl.getAsJsonObject();
-            JsonObject convertedSale = new JsonObject(); // This will be the object for the table row
+            JsonObject convertedSale = new JsonObject();
 
             convertedSale.addProperty("Sale ID", originalSale.get("saleId").getAsString());
 
             String itemId = originalSale.get("itemId").getAsString();
-            String itemName = "Item Not Found"; // Default if lookup fails
+            String itemName = "Item Not Found";
             if (itemsMapForConversion != null && itemsMapForConversion.containsKey(itemId)) {
                 JsonObject item = itemsMapForConversion.get(itemId);
                 if(item.has("itemName") && !item.get("itemName").isJsonNull()){
                     itemName = item.get("itemName").getAsString();
                 } else {
-                    itemName = "Item Name Missing";
+                    itemName = "Item Name Missing (ID: "+itemId+")";
                 }
             } else {
-                 // Fallback: if itemsMap is null or item not in map (e.g. item deleted after sale)
-                 // This is less efficient as it might read the items file multiple times if map is not good.
-                System.err.println("Item ID " + itemId + " not found in provided itemsMap. Attempting static lookup for display.");
-                itemName = getNameByIdStatic(ITEMS_FILE_PATH, "itemId", itemId, "itemName");
+                System.err.println("Item ID " + itemId + " not found in provided itemsMap. Static lookup might be slow or fail if item is deleted.");
+                // Fallback (less efficient, consider if itemsMap should always be complete)
+                itemName = getNameByIdStatic(ITEMS_FILE_PATH, "itemId", itemId, "itemName", dummyHandler);
             }
             convertedSale.addProperty("Item Name", itemName);
             
-            // Ensure "quantitySold" exists before trying to access it.
-            if (originalSale.has("quantitySold") && !originalSale.get("quantitySold").isJsonNull()) {
-                 convertedSale.addProperty("Quantity Sold", originalSale.get("quantitySold").getAsString());
-            } else {
-                convertedSale.addProperty("Quantity Sold", "N/A");
-            }
-
-            if (originalSale.has("totalSales") && !originalSale.get("totalSales").isJsonNull()) {
-                convertedSale.addProperty("Total Sales", originalSale.get("totalSales").getAsString());
-            } else {
-                convertedSale.addProperty("Total Sales", "N/A");
-            }
+            convertedSale.addProperty("Quantity Sold", originalSale.has("quantitySold") ? originalSale.get("quantitySold").getAsString() : "N/A");
+            convertedSale.addProperty("Total Sales", originalSale.has("totalSales") ? originalSale.get("totalSales").getAsString() : "N/A");
             
             if (originalSale.has("createdAt") && !originalSale.get("createdAt").isJsonNull()) {
                 String createdAtFull = originalSale.get("createdAt").getAsString();
@@ -412,51 +503,45 @@ public class SalesTableHandler implements TableActionHandler {
         return convertedArray;
     }
 
-    // Static helper for item name lookup, used as a fallback by convertSalesDataForDisplay.
-    private static String getNameByIdStatic(String filePath, String idKeyToMatch, String targetIdValue, String nameKeyToFetch) {
+    private static String getNameByIdStatic(String filePath, String idKeyToMatch, String targetIdValue, String nameKeyToFetch, SalesTableHandler helperInstance) {
         try {
             JsonArray itemsArray = JsonStorageHelper.loadAsJsonArray(filePath);
             for (JsonElement el : itemsArray) {
                 JsonObject itemObj = el.getAsJsonObject();
-                JsonElement idElement = itemObj.get(idKeyToMatch);
+                String currentItemIdStr = helperInstance.getItemIdAsString(itemObj, idKeyToMatch);
 
-                if (idElement == null || idElement.isJsonNull()) continue;
-
-                String currentItemIdStr;
-                if (idElement.isJsonPrimitive() && idElement.getAsJsonPrimitive().isString()) {
-                    currentItemIdStr = idElement.getAsString();
-                } else if (idElement.isJsonPrimitive() && idElement.getAsJsonPrimitive().isNumber()) {
-                    currentItemIdStr = idElement.getAsNumber().toString();
-                } else {
-                    continue; // Skip if itemId is not a string or number
-                }
-
-                if (currentItemIdStr.equals(targetIdValue)) {
-                    if (itemObj.has(nameKeyToFetch) && !itemObj.get(nameKeyToFetch).isJsonNull()){
-                        return itemObj.get(nameKeyToFetch).getAsString();
-                    } else {
-                        return "Name N/A"; // Item found, but name field missing
-                    }
+                if (currentItemIdStr != null && currentItemIdStr.equals(targetIdValue)) {
+                    return (itemObj.has(nameKeyToFetch) && !itemObj.get(nameKeyToFetch).isJsonNull()) ?
+                           itemObj.get(nameKeyToFetch).getAsString() : "Name N/A";
                 }
             }
         } catch (Exception e) {
-            System.err.println("Error in getNameByIdStatic looking for ID '" + targetIdValue + "' in '" + filePath + "': " + e.getMessage());
-            // e.printStackTrace(); // Uncomment for detailed debug
+            System.err.println("Error in getNameByIdStatic (ID '" + targetIdValue + "'): " + e.getMessage());
         }
-        return "Unknown Item"; // Default if not found or error during lookup
+        return "Unknown Item (ID: " + targetIdValue + ")";
     }
 
-    // Renamed from getLatestData to be more specific
     private JsonArray getLatestSalesData() {
         try {
             return JsonStorageHelper.loadAsJsonArray(SALES_FILE_PATH);
-        } catch (IOException e) { // Includes FileNotFoundException
-            // If sales file doesn't exist, it's like an empty list of sales
-            System.out.println(SALES_FILE_PATH + " not found or unreadable. Returning empty sales list. " + e.getMessage());
+        } catch (IOException e) {
+            System.out.println(SALES_FILE_PATH + " not found or unreadable. Returning empty. " + e.getMessage());
             return new JsonArray();
-        } catch (IllegalStateException e) { // GSON parsing error
-            JOptionPane.showMessageDialog(currentPage, "Error parsing " + SALES_FILE_PATH + ". Is it a valid JSON array? Displaying empty list. Details: " + e.getMessage(), "JSON Error", JOptionPane.ERROR_MESSAGE);
+        } catch (IllegalStateException e) {
+            JOptionPane.showMessageDialog(currentPage, "Error parsing " + SALES_FILE_PATH + ". Details: " + e.getMessage(), "JSON Error", JOptionPane.ERROR_MESSAGE);
             return new JsonArray();
+        }
+    }
+
+    private void refreshSalesTable() {
+        JsonArray updatedRawSalesData = getLatestSalesData();
+        // Ensure itemsMap is up-to-date, especially if an operation changed stock
+        // loadItemsData(); // Called within updateItemStockInFile, and at start of onEdit/onDelete logic
+        JsonArray displayData = convertSalesDataForDisplay(updatedRawSalesData, this.itemsMap);
+        if (currentPage instanceof TablePage) {
+             ((TablePage) currentPage).refreshTableData(displayData);
+        } else {
+            System.err.println("Warning: currentPage is not TablePage. Cannot refresh.");
         }
     }
 }

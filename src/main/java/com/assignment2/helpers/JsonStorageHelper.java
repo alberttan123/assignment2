@@ -8,6 +8,7 @@ import java.nio.file.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -83,27 +84,6 @@ public class JsonStorageHelper {
             gson.toJson(data, writer);
         }
     }
-
-
-    // ---------- NEW METHOD: saveJsonArray ----------
-    /**
-     * Saves a JsonArray to the specified file path (relative to DATA_DIR).
-     * The file will be overwritten if it already exists.
-     *
-     * @param filePath The relative path of the file (e.g., "Sales.txt").
-     * @param array    The JsonArray to save.
-     * @throws IOException If an I/O error occurs writing to the file.
-     */
-    public static void saveJsonArray(String filePath, JsonArray array) throws IOException {
-        Path target = DATA_DIR.resolve(filePath);
-        Files.createDirectories(target.getParent()); // Ensure parent directory (e.g., 'data') exists
-        try (Writer writer = Files.newBufferedWriter(target)) {
-            gson.toJson(array, writer); // Use Gson to write the JsonArray to the file
-        }
-        // System.out.println("Saved JsonArray to: " + target.toAbsolutePath()); // Debug
-    }
-    // -----------------------------------------------
-
 
     // ---------- Update logic ----------
     public static void updateOrInsert(String filePath, JsonObject updatedData, String matchingIdField) throws IOException {
@@ -285,6 +265,33 @@ public class JsonStorageHelper {
         return names;
     }
 
+    public static List<Integer> getListOfInt(String filePath, String key) {
+        JsonArray currentData = null;
+        try {
+            currentData = loadAsJsonArray(filePath);
+        } catch (IOException e) {
+            System.out.println("File not found: " + filePath);
+            e.printStackTrace();
+            return Collections.emptyList(); // early return to avoid NullPointerException
+        }
+
+        List<Integer> numbers = new ArrayList<>();
+        for (JsonElement element : currentData) {
+            JsonObject obj = element.getAsJsonObject();
+            if (obj.has(key) && obj.get(key).isJsonPrimitive() && obj.get(key).getAsJsonPrimitive().isNumber()) {
+                numbers.add(obj.get(key).getAsInt());
+            } else {
+                try {
+                    numbers.add(Integer.parseInt(obj.get(key).getAsString()));
+                } catch (NumberFormatException e) {
+                    System.out.println("Invalid integer format for key '" + key + "': " + obj.get(key));
+                }
+            }
+        }
+
+        return numbers;
+    }
+
     public static List<String> getUserList() {
         JsonObject arr = null;
         JsonArray currentData = null;
@@ -301,5 +308,19 @@ public class JsonStorageHelper {
             names.add(obj.get("email").getAsString());
         }
         return names;
+    }
+
+    public static boolean checkFileExists(String filePath) {
+        Reader file = null;
+        try {
+            file = resolveReader(filePath);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        if(file instanceof Reader){
+            return true;
+        }else{
+            return false;
+        }
     }
 }
