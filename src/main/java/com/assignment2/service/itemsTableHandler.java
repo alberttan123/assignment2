@@ -151,6 +151,7 @@ public class itemsTableHandler implements TableActionHandler {
         context.editedData.addProperty("itemName", itemName);
         context.editedData.addProperty("stockLevel", original.get("stockLevel").getAsString());
         context.editedData.addProperty("sellingPrice", original.get("sellingPrice").getAsString());
+        context.editedData.addProperty("buyingPrice", original.get("buyingPrice").getAsString());
         context.tableName = "items";
 
         new EditDialog(null, updatedData -> {

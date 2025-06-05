@@ -4,5 +4,6 @@ Laptop          2          RM 50.00        RM 3999.98      RM 100.00     RM 3899
 Cucumber        12         RM 50.00        RM 60000.00     RM 600.00     RM 59400.00
 Brinjal         92         RM 50.00        RM 45908.00     RM 4600.00    RM 41308.00
 Brinjal         15         RM 50.00        RM 7485.00      RM 750.00     RM 6735.00
+Cucumber        20         RM 50.00        RM 100000.00    RM 1000.00    RM 99000.00
 
-Total Profit: RM 111342.98
+Total Profit: RM 210342.98

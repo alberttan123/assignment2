@@ -216,7 +216,7 @@ public class SalesTableHandler implements TableActionHandler {
         try {
             JsonArray salesArray = getLatestSalesData(); // Handles file not existing by returning empty array
             salesArray.add(newSale);
-            JsonStorageHelper.saveJsonArray(SALES_FILE_PATH, salesArray);
+            JsonStorageHelper.saveToJson(SALES_FILE_PATH, salesArray);
             JOptionPane.showMessageDialog(currentPage, "Sale added successfully! New Sale ID: " + newSaleId, "Success", JOptionPane.INFORMATION_MESSAGE);
         } catch (IOException e) {
             e.printStackTrace();
@@ -263,7 +263,7 @@ public class SalesTableHandler implements TableActionHandler {
             }
 
             if (itemFoundAndUpdated) {
-                JsonStorageHelper.saveJsonArray(ITEMS_FILE_PATH, updatedItemsArray);
+                JsonStorageHelper.saveToJson(itemIdToUpdate, itemIdToUpdate);
                 loadItemsData(); // Refresh local itemsMap as stock has changed
                 return true;
             } else {
@@ -375,7 +375,7 @@ public class SalesTableHandler implements TableActionHandler {
                 JOptionPane.showMessageDialog(currentPage, "Failed to find Sale ID " + saleIdToEdit + " in Sales.txt during update. Aborting.", "Internal Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            JsonStorageHelper.saveJsonArray(SALES_FILE_PATH, updatedSalesArray);
+            JsonStorageHelper.saveToJson(SALES_FILE_PATH, updatedSalesArray);
 
             // 7. Update stock level in items.txt
             boolean stockFileUpdated = updateItemStockInFile(itemId, finalNewStockLevelForItem);
@@ -435,7 +435,7 @@ public class SalesTableHandler implements TableActionHandler {
                 JOptionPane.showMessageDialog(currentPage, "Internal Error: Sale ID " + saleIdToDelete + " not found for deletion after initial check.", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            JsonStorageHelper.saveJsonArray(SALES_FILE_PATH, updatedSalesArray);
+            JsonStorageHelper.saveToJson(SALES_FILE_PATH, updatedSalesArray);
 
             // 3. Revert stock in items.txt
             loadItemsData(); // Ensure itemsMap is fresh before getting current stock
